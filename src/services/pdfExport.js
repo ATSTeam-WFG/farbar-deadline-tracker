@@ -10,7 +10,7 @@ import { format } from 'date-fns';
 /**
  * Export calculation results to PDF
  */
-export function exportToPDF(result, contractData) {
+export async function exportToPDF(result, contractData) {
   const doc = new jsPDF();
 
   // Page dimensions
@@ -24,21 +24,35 @@ export function exportToPDF(result, contractData) {
 
   let yPosition = 20;
 
-  // ===== HEADER =====
+  // ===== HEADER WITH LOGO =====
   doc.setFillColor(...darkColor);
-  doc.rect(0, 0, pageWidth, 35, 'F');
+  doc.rect(0, 0, pageWidth, 50, 'F');
 
+  // Add logo
+  try {
+    const logoImg = await loadImage('/logo.png');
+    const logoWidth = 45;
+    const logoHeight = 20;
+    const logoX = (pageWidth - logoWidth) / 2;
+    doc.addImage(logoImg, 'PNG', logoX, 10, logoWidth, logoHeight);
+    yPosition = 35;
+  } catch (error) {
+    console.error('Error loading logo:', error);
+    yPosition = 20;
+  }
+
+  // Title below logo
   doc.setTextColor(255, 255, 255);
-  doc.setFontSize(20);
+  doc.setFontSize(18);
   doc.setFont(undefined, 'bold');
-  doc.text('FAR/BAR Contract Deadline Report', pageWidth / 2, 15, { align: 'center' });
+  doc.text('FAR/BAR Contract Deadline Report', pageWidth / 2, yPosition, { align: 'center' });
 
-  doc.setFontSize(10);
+  doc.setFontSize(9);
   doc.setFont(undefined, 'normal');
   doc.setTextColor(...goldColor);
-  doc.text('Precision Deadline Tracking for Title Professionals', pageWidth / 2, 25, { align: 'center' });
+  doc.text('Precision Deadline Tracking for Title Professionals', pageWidth / 2, yPosition + 7, { align: 'center' });
 
-  yPosition = 45;
+  yPosition = 60;
 
   // ===== CONTRACT SUMMARY =====
   doc.setTextColor(...darkColor);
@@ -180,6 +194,27 @@ function getStatusBadge(dueDate) {
   if (diffDays <= 3) return 'URGENT';
   if (diffDays <= 7) return 'SOON';
   return 'FUTURE';
+}
+
+/**
+ * Load image as data URL for PDF inclusion
+ */
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'Anonymous';
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      const dataURL = canvas.toDataURL('image/png');
+      resolve(dataURL);
+    };
+    img.onerror = (error) => reject(error);
+    img.src = src;
+  });
 }
 
 /**

@@ -109,6 +109,12 @@ service cloud.firestore {
       allow delete: if request.auth != null
                     && request.auth.uid == resource.data.userId;
     }
+
+    // Allow users to read/write only their own notification preferences
+    match /userPreferences/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
   }
 }
 ```
@@ -224,7 +230,7 @@ calculationSessions/
 - ✅ Firestore database created
 - ✅ Security rules configured
 - ✅ App config updated
-- ✅ Sign-in works
+- ✅ Sign-in worksget thi
 - ✅ Save calculation works
 - ✅ Load calculation works
 - ✅ PDF export works

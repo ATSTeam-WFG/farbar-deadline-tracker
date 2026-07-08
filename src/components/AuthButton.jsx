@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import NotificationSettings from './NotificationSettings';
 import './AuthButton.css';
 
 function AuthButton() {
@@ -7,6 +8,7 @@ function AuthButton() {
   const [showMenu, setShowMenu] = useState(false);
   const [loading, setLoading] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
 
   const handleSignIn = async () => {
     setLoading(true);
@@ -118,6 +120,19 @@ function AuthButton() {
               </div>
             </div>
             <div className="auth-menu-divider" />
+            <button
+              className="auth-menu-item"
+              onClick={() => {
+                setShowSettings(true);
+                setShowMenu(false);
+              }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+              </svg>
+              Notification Settings
+            </button>
             <button className="auth-menu-item" onClick={handleSignOut}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
@@ -128,6 +143,11 @@ function AuthButton() {
             </button>
           </div>
         </>
+      )}
+
+      {/* Notification Settings Modal */}
+      {showSettings && (
+        <NotificationSettings onClose={() => setShowSettings(false)} />
       )}
     </div>
   );
