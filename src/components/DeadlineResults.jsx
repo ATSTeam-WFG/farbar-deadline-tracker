@@ -4,10 +4,12 @@ import { getDeadlineStatus, getStatusLabel } from '../utils/deadlineRules';
 import { useAuth } from '../contexts/AuthContext';
 import { saveSession } from '../services/sessionService';
 import { exportToPDF } from '../services/pdfExport';
+import CalendarView from './CalendarView';
 
 function DeadlineResults({ result, contractData, hiddenDeadlines = new Set(), onReset }) {
   const { currentUser } = useAuth();
   const [saving, setSaving] = useState(false);
+  const [viewMode, setViewMode] = useState('list');
   if (!result || !result.deadlines || result.deadlines.length === 0) {
     return null;
   }
@@ -103,6 +105,28 @@ function DeadlineResults({ result, contractData, hiddenDeadlines = new Set(), on
           {contractData.propertyAddress && (
             <p className="property-address">{contractData.propertyAddress}</p>
           )}
+        </div>
+        <div className="input-method-toggle results-view-toggle">
+          <button
+            className={`toggle-btn${viewMode === 'list' ? ' active' : ''}`}
+            onClick={() => setViewMode('list')}
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '6px', verticalAlign: 'middle' }}>
+              <line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" />
+              <line x1="3" y1="6" x2="3.01" y2="6" /><line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" />
+            </svg>
+            List
+          </button>
+          <button
+            className={`toggle-btn${viewMode === 'calendar' ? ' active' : ''}`}
+            onClick={() => setViewMode('calendar')}
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '6px', verticalAlign: 'middle' }}>
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+              <line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
+            </svg>
+            Calendar
+          </button>
         </div>
         <div className="results-actions">
           {currentUser && (
@@ -214,8 +238,11 @@ function DeadlineResults({ result, contractData, hiddenDeadlines = new Set(), on
         </div>
       )}
 
-      {/* Deadlines Table */}
-      <div className="deadline-table-container">
+      {/* Deadlines Table / Calendar */}
+      {viewMode === 'calendar' ? (
+        <CalendarView deadlines={result.deadlines} hiddenDeadlines={hiddenDeadlines} />
+      ) : null}
+      <div className="deadline-table-container" style={viewMode === 'calendar' ? { display: 'none' } : {}}>
         <table className="deadline-table">
           <thead>
             <tr>
@@ -280,7 +307,7 @@ function DeadlineResults({ result, contractData, hiddenDeadlines = new Set(), on
       </div>
 
       {/* Legend */}
-      <div className="legend-section">
+      <div className="legend-section" style={viewMode === 'calendar' ? { display: 'none' } : {}}>
         <div className="legend-column">
           <div className="legend-title">Status Legend:</div>
           <div className="legend-items">
