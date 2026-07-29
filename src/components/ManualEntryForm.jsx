@@ -7,13 +7,14 @@ function ManualEntryForm({ onSubmit }) {
     transactionType: '',
     isCondo: false,
     propertyAddress: '',
+    initialDepositDays: 3,
   });
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === 'checkbox' ? checked : type === 'number' ? Number(value) : value
     }));
   };
 
@@ -35,6 +36,7 @@ function ManualEntryForm({ onSubmit }) {
       transactionType: '',
       isCondo: false,
       propertyAddress: '',
+      initialDepositDays: 3,
     });
   };
 
@@ -83,6 +85,22 @@ function ManualEntryForm({ onSubmit }) {
             <option value="cash">Cash</option>
             <option value="financed">Financed</option>
           </select>
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="initialDepositDays">
+            Initial Deposit <span className="form-label-sub">days (Para. 2(a))</span>
+          </label>
+          <input
+            type="number"
+            id="initialDepositDays"
+            name="initialDepositDays"
+            value={formData.initialDepositDays}
+            onChange={handleChange}
+            min={1}
+            max={90}
+          />
+          <small>Default per FAR/BAR. Edit if contract specifies differently.</small>
         </div>
 
         <div className="form-group checkbox-group">

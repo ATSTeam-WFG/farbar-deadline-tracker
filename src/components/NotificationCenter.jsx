@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { format, differenceInDays } from 'date-fns';
 import './NotificationCenter.css';
 
-function NotificationCenter({ deadlines }) {
+function NotificationCenter({ deadlines, inline = false }) {
   const [showPanel, setShowPanel] = useState(false);
   const [notifications, setNotifications] = useState([]);
 
@@ -57,6 +57,55 @@ function NotificationCenter({ deadlines }) {
 
   const unreadCount = notifications.length;
 
+  const panelContent = (
+    <div className={inline ? 'notification-panel notification-panel--inline' : 'notification-panel'}>
+      <div className="notification-header">
+        <h3>Upcoming Deadlines</h3>
+        {unreadCount > 0 && (
+          <span className="notification-count">{unreadCount} upcoming</span>
+        )}
+      </div>
+
+      <div className="notification-list">
+        {notifications.length === 0 ? (
+          <div className="notification-empty">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+              <polyline points="22 4 12 14.01 9 11.01" />
+            </svg>
+            <p>No upcoming deadlines</p>
+            <span>All caught up!</span>
+          </div>
+        ) : (
+          notifications.map(notification => (
+            <div
+              key={notification.id}
+              className={`notification-item notification-${notification.type}`}
+            >
+              <div className="notification-icon">
+                {notification.type === 'critical' && '🔴'}
+                {notification.type === 'urgent' && '🟠'}
+                {notification.type === 'warning' && '🟡'}
+                {notification.type === 'info' && '🔵'}
+              </div>
+              <div className="notification-content">
+                <div className="notification-title">{notification.title}</div>
+                <div className="notification-message">{notification.message}</div>
+                <div className="notification-date">
+                  {format(new Date(notification.dueDate), 'EEEE, MMMM d, yyyy')}
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+
+  if (inline) {
+    return panelContent;
+  }
+
   return (
     <div className="notification-center">
       <button
@@ -76,56 +125,7 @@ function NotificationCenter({ deadlines }) {
       {showPanel && (
         <>
           <div className="notification-overlay" onClick={() => setShowPanel(false)} />
-          <div className="notification-panel">
-            <div className="notification-header">
-              <h3>Notifications</h3>
-              {unreadCount > 0 && (
-                <span className="notification-count">{unreadCount} upcoming</span>
-              )}
-            </div>
-
-            <div className="notification-list">
-              {notifications.length === 0 ? (
-                <div className="notification-empty">
-                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                    <polyline points="22 4 12 14.01 9 11.01" />
-                  </svg>
-                  <p>No upcoming deadlines</p>
-                  <span>All caught up!</span>
-                </div>
-              ) : (
-                notifications.map(notification => (
-                  <div
-                    key={notification.id}
-                    className={`notification-item notification-${notification.type}`}
-                  >
-                    <div className="notification-icon">
-                      {notification.type === 'critical' && '🔴'}
-                      {notification.type === 'urgent' && '🟠'}
-                      {notification.type === 'warning' && '🟡'}
-                      {notification.type === 'info' && '🔵'}
-                    </div>
-                    <div className="notification-content">
-                      <div className="notification-title">{notification.title}</div>
-                      <div className="notification-message">{notification.message}</div>
-                      <div className="notification-date">
-                        {format(new Date(notification.dueDate), 'EEEE, MMMM d, yyyy')}
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-
-            {notifications.length > 0 && (
-              <div className="notification-footer">
-                <button className="btn-link" onClick={() => setShowPanel(false)}>
-                  Close
-                </button>
-              </div>
-            )}
-          </div>
+          {panelContent}
         </>
       )}
     </div>

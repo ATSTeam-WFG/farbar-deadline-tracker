@@ -7,7 +7,7 @@
  * - If deadline falls on weekend/holiday, it extends to next business day
  */
 
-import { addCalendarDays, subtractCalendarDays, ensureBusinessDay } from './businessDays';
+import { addCalendarDays, subtractCalendarDays, ensureBusinessDay, parseLocalDate } from './businessDays';
 
 /**
  * Static list of all possible deadline definitions.
@@ -40,7 +40,7 @@ export const DEADLINE_DEFINITIONS = [
  */
 function estimateClosingDate(effectiveDate, transactionType) {
   const days = transactionType === 'cash' ? 30 : 45;
-  return addCalendarDays(new Date(effectiveDate), days);
+  return addCalendarDays(parseLocalDate(effectiveDate), days);
 }
 
 /**
@@ -54,13 +54,13 @@ export function calculateAllDeadlines(contractData) {
     closingDate,
     transactionType, // 'cash' or 'financed'
     isCondo = false,
+    initialDepositDays = 3,
   } = contractData;
 
-  // Note: Effective date is NOT adjusted - it's a historical fact
-  // Deadlines calculated FROM it will be adjusted by addCalendarDays function
-  const effective = new Date(effectiveDate);
+  // Parse date strings as local time (not UTC) to avoid off-by-one day errors
+  const effective = parseLocalDate(effectiveDate);
 
-  let closing = closingDate ? new Date(closingDate) : null;
+  let closing = closingDate ? parseLocalDate(closingDate) : null;
   const isClosingEstimated = !closing;
 
   // Estimate closing if not provided
@@ -78,13 +78,13 @@ export function calculateAllDeadlines(contractData) {
   // FORWARD CALCULATIONS (from Effective Date)
   // ==========================================
 
-  // 1. Initial Deposit - 3 calendar days (Paragraph 2(a), Line 28-32)
+  // 1. Initial Deposit - configurable calendar days (Paragraph 2(a), Line 28-32)
   deadlines.push({
     id: 'initial-deposit',
     name: 'Initial Deposit Due',
     description: 'Buyer must deliver initial deposit to escrow agent',
-    dueDate: addCalendarDays(effective, 3),
-    calendarDays: 3,
+    dueDate: addCalendarDays(effective, initialDepositDays),
+    calendarDays: initialDepositDays,
     category: 'Deposit',
     priority: 'critical',
     appliesTo: 'all',

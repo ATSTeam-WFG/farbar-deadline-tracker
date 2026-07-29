@@ -226,6 +226,17 @@ export function ensureBusinessDay(date) {
 }
 
 /**
+ * Parse a date string from <input type="date"> as local time, not UTC.
+ * "2024-01-15" via new Date() is UTC midnight, which is the previous day in Eastern time.
+ * @param {string} dateString - YYYY-MM-DD string
+ * @returns {Date} - Local midnight date
+ */
+export function parseLocalDate(dateString) {
+  const [year, month, day] = dateString.split('-').map(Number);
+  return new Date(year, month - 1, day);
+}
+
+/**
  * Format date to readable string
  */
 export function formatDate(date) {

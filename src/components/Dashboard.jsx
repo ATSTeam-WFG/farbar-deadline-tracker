@@ -12,7 +12,7 @@ const getDateFromTimestamp = (timestamp) => {
   return new Date(timestamp);
 };
 
-function Dashboard({ onLoadSession, onClose }) {
+function Dashboard({ onLoadSession, onClose, inline = false }) {
   const { currentUser } = useAuth();
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -72,21 +72,19 @@ function Dashboard({ onLoadSession, onClose }) {
   };
 
   if (loading) {
-    return (
-      <div className="dashboard-overlay">
-        <div className="dashboard-modal">
-          <div className="dashboard-loading">
-            <div className="loading-spinner"></div>
-            <p>Loading your saved reports...</p>
-          </div>
+    const loadingContent = (
+      <div className="dashboard-modal">
+        <div className="dashboard-loading">
+          <div className="loading-spinner"></div>
+          <p>Loading your saved reports...</p>
         </div>
       </div>
     );
+    return inline ? loadingContent : <div className="dashboard-overlay">{loadingContent}</div>;
   }
 
-  return (
-    <div className="dashboard-overlay" onClick={onClose}>
-      <div className="dashboard-modal" onClick={(e) => e.stopPropagation()}>
+  const modalContent = (
+      <div className={inline ? 'dashboard-modal dashboard-modal--inline' : 'dashboard-modal'} onClick={inline ? undefined : (e) => e.stopPropagation()}>
         <div className="dashboard-header">
           <div>
             <h2>My Saved Reports</h2>
@@ -210,6 +208,11 @@ function Dashboard({ onLoadSession, onClose }) {
           )}
         </div>
       </div>
+  );
+
+  return inline ? modalContent : (
+    <div className="dashboard-overlay" onClick={onClose}>
+      {modalContent}
     </div>
   );
 }

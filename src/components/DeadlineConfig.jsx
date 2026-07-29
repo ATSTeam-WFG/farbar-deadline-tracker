@@ -10,7 +10,7 @@ import { DEADLINE_DEFINITIONS } from '../utils/deadlineRules';
  *   onSave(newSet)   – called when user confirms their selection
  *   onClose()        – called to dismiss without saving
  */
-function DeadlineConfig({ hiddenDeadlines, onSave, onClose }) {
+function DeadlineConfig({ hiddenDeadlines, onSave, onClose, inline = false }) {
   // Local checked state: id → boolean (true = visible in report)
   const [checked, setChecked] = useState(() => {
     const map = {};
@@ -58,9 +58,8 @@ function DeadlineConfig({ hiddenDeadlines, onSave, onClose }) {
 
   const visibleCount = DEADLINE_DEFINITIONS.filter(def => checked[def.id]).length;
 
-  return (
-    <div className="config-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="config-modal" role="dialog" aria-modal="true" aria-labelledby="config-title">
+  const innerContent = (
+      <div className={inline ? 'config-modal config-modal--inline' : 'config-modal'} role={inline ? undefined : 'dialog'} aria-modal={inline ? undefined : 'true'} aria-labelledby="config-title">
         {/* Header */}
         <div className="config-header">
           <div>
@@ -70,7 +69,7 @@ function DeadlineConfig({ hiddenDeadlines, onSave, onClose }) {
               All are included by default.
             </p>
           </div>
-          <button className="config-close-btn" onClick={onClose} aria-label="Close">&#x2715;</button>
+          {!inline && <button className="config-close-btn" onClick={onClose} aria-label="Close">&#x2715;</button>}
         </div>
 
         {/* Bulk actions */}
@@ -130,14 +129,21 @@ function DeadlineConfig({ hiddenDeadlines, onSave, onClose }) {
 
         {/* Footer */}
         <div className="config-footer">
-          <button className="btn-secondary" onClick={onClose}>
-            Cancel
-          </button>
+          {!inline && (
+            <button className="btn-secondary" onClick={onClose}>
+              Cancel
+            </button>
+          )}
           <button className="btn-primary" onClick={handleSave}>
             Apply to Report
           </button>
         </div>
       </div>
+  );
+
+  return inline ? innerContent : (
+    <div className="config-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      {innerContent}
     </div>
   );
 }
