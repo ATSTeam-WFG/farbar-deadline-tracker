@@ -499,6 +499,39 @@ h1, h2, h3, h4 {
 }
 
 /* ============================================================
+   CONDO RIDER PANEL
+   ============================================================ */
+
+.condo-rider-panel {
+  margin: 1.5rem 0;
+  padding: 1.5rem;
+  background: rgba(196, 165, 116, 0.04);
+  border: 1.5px solid rgba(196, 165, 116, 0.3);
+  border-radius: var(--radius-card);
+}
+
+.condo-rider-title {
+  font-family: var(--font-heading);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--gold-700, #a8894f);
+  margin: 0 0 1.25rem 0;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(196, 165, 116, 0.2);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.condo-rider-ref {
+  font-weight: 400;
+  font-size: 0.8rem;
+  color: var(--text-muted, #6b7280);
+  text-transform: none;
+  letter-spacing: 0;
+  margin-left: 0.5rem;
+}
+
+/* ============================================================
    BUTTONS
    ============================================================ */
 .form-actions {
@@ -921,6 +954,7 @@ h1, h2, h3, h4 {
   text-align: left;
   transition: background var(--transition-fast);
   border-left: 4px solid transparent;
+  user-select: none;
 }
 
 .deadline-group-header:hover {
@@ -1676,6 +1710,16 @@ h1, h2, h3, h4 {
 @media (max-width: 1024px) {
   .main-body {
     padding: 1.5rem;
+  }
+}
+
+@media (max-width: 1024px) {
+  .topbar-hamburger {
+    display: flex;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr 1fr;
   }
 }
 

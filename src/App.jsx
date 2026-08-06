@@ -56,7 +56,7 @@ function App() {
             <h2>Contract Information</h2>
             <button
               className="btn-configure"
-              onClick={() => {}}
+              onClick={() => setActiveView('settings')}
               title="Choose which deadlines appear in the report"
               aria-haspopup="dialog"
             >

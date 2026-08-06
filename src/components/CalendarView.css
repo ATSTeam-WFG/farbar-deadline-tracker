@@ -16,9 +16,9 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem 1rem;
-  background: var(--charcoal);
+  background: var(--navy-900);
   border-radius: var(--radius-lg);
-  border: 1px solid rgba(196, 165, 116, 0.2);
+  border: 1px solid rgba(196, 165, 116, 0.3);
 }
 
 .cal-nav-btn {
@@ -27,9 +27,9 @@
   justify-content: center;
   width: 36px;
   height: 36px;
-  border: 1px solid rgba(196, 165, 116, 0.3);
+  border: 1px solid rgba(196, 165, 116, 0.65);
   border-radius: var(--radius-md);
-  background: transparent;
+  background: rgba(255, 255, 255, 0.05);
   color: var(--accent-gold);
   cursor: pointer;
   transition: all var(--transition-fast);
@@ -37,7 +37,7 @@
 }
 
 .cal-nav-btn:hover {
-  background: rgba(196, 165, 116, 0.15);
+  background: rgba(196, 165, 116, 0.18);
   border-color: var(--accent-gold);
 }
 
@@ -101,7 +101,7 @@
 .calendar-dow-row {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  background: var(--charcoal);
+  background: var(--navy-900);
   border-bottom: 2px solid rgba(196, 165, 116, 0.25);
 }
 
@@ -196,7 +196,7 @@
   width: 26px;
   height: 26px;
   border-radius: 50%;
-  background: var(--charcoal);
+  background: var(--navy-900);
   color: var(--accent-gold);
   font-weight: 700;
   box-shadow: 0 0 0 2px var(--accent-gold);
@@ -260,7 +260,7 @@
   width: 320px;
   flex-shrink: 0;
   border-radius: var(--radius-lg);
-  border: 1px solid rgba(196, 165, 116, 0.25);
+  border: 1px solid rgba(196, 165, 116, 0.35);
   overflow: hidden;
   box-shadow: var(--shadow-md);
   display: flex;
@@ -275,7 +275,7 @@
   justify-content: space-between;
   gap: 0.5rem;
   padding: 0.875rem 1rem;
-  background: var(--charcoal);
+  background: var(--navy-800);
   border-bottom: 2px solid var(--accent-gold);
   flex-shrink: 0;
 }

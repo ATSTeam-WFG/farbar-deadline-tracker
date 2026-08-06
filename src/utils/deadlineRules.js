@@ -7,7 +7,7 @@
  * - If deadline falls on weekend/holiday, it extends to next business day
  */
 
-import { addCalendarDays, subtractCalendarDays, ensureBusinessDay, parseLocalDate } from './businessDays';
+import { addCalendarDays, subtractCalendarDays, ensureBusinessDay, parseLocalDate, addBusinessDays } from './businessDays';
 
 /**
  * Static list of all possible deadline definitions.
@@ -22,8 +22,12 @@ export const DEADLINE_DEFINITIONS = [
   { id: 'inspection-period',       name: 'Inspection Period Ends',               category: 'Inspections',        appliesTo: 'all',      note: '' },
   { id: 'flood-zone-termination',  name: 'Flood Zone Termination Period',        category: 'Contingencies',      appliesTo: 'all',      note: '' },
   { id: 'lease-disclosure',        name: 'Seller Lease Disclosure',              category: 'Seller Obligations', appliesTo: 'all',      note: 'Only if property has active leases' },
-  { id: 'condo-docs-delivery',     name: 'Condo/HOA Documents Delivery',         category: 'Condo / HOA',        appliesTo: 'condo',    note: 'Condo/HOA properties only' },
-  { id: 'condo-review-termination',name: 'Condo Review Termination Right',       category: 'Condo / HOA',        appliesTo: 'condo',    note: 'Condo/HOA properties only' },
+  { id: 'condo-assoc-approval-initiation',  name: 'Seller Initiates Condo Assoc. Approval', category: 'Condo / HOA', appliesTo: 'condo', note: 'Condo Rider §1 — when assoc. approval required' },
+  { id: 'condo-assoc-approval-deadline',   name: 'Buyer Approved by Condo Assoc.',          category: 'Condo / HOA', appliesTo: 'condo', note: 'Condo Rider §1 — N calendar days before closing' },
+  { id: 'condo-rofr-docs',                 name: 'Right of First Refusal Docs',             category: 'Condo / HOA', appliesTo: 'condo', note: 'Condo Rider §2(c) — when ROFR applies' },
+  { id: 'condo-nondeveloper-termination',  name: 'Nondeveloper Disclosure Termination',     category: 'Condo / HOA', appliesTo: 'condo', note: 'Condo Rider §5(b) — 7 business days; only if docs not pre-provided' },
+  { id: 'condo-docs-request-termination',  name: "Buyer's Requested Docs Termination",      category: 'Condo / HOA', appliesTo: 'condo', note: 'Condo Rider §6(b) — 7 business days from receipt of all docs' },
+  { id: 'condo-inspection-voidability',    name: 'Milestone/SIRS/Turnover Voidability',     category: 'Condo / HOA', appliesTo: 'condo', note: 'Condo Rider §9(d) — 7 business days; applies if any inspection report completed' },
   { id: 'title-commitment',        name: 'Title Evidence (Commitment) Due',      category: 'Title',              appliesTo: 'all',      note: '' },
   { id: 'title-objection',         name: 'Title Objection Deadline',             category: 'Title',              appliesTo: 'all',      note: 'Conditional on title commitment delivery' },
   { id: 'title-cure',              name: 'Title Cure Period Ends',               category: 'Title',              appliesTo: 'all',      note: 'Conditional – only if objections are raised' },
@@ -55,6 +59,20 @@ export function calculateAllDeadlines(contractData) {
     transactionType, // 'cash' or 'financed'
     isCondo = false,
     initialDepositDays = 3,
+    // Condo Rider §1
+    condoAssocApprovalRequired = false,
+    condoAssocApprovalDaysBefore = 5,
+    condoSellerInitiatesDays = 5,
+    // Condo Rider §2(c)
+    hasRightOfFirstRefusal = false,
+    // Condo Rider §5
+    condoDocsPreProvided = false,
+    // Condo Rider §6(b)
+    condoDocsBuyerRequested = false,
+    // Condo Rider §9(d)
+    milestoneInspectionStatus = 'not_required', // 'completed' | 'not_required' | 'pending'
+    sirsStatus = 'not_required',
+    turnoverInspectionStatus = 'not_required',
   } = contractData;
 
   // Parse date strings as local time (not UTC) to avoid off-by-one day errors
@@ -175,33 +193,110 @@ export function calculateAllDeadlines(contractData) {
     note: 'Only applicable if property is subject to lease or occupancy after closing',
   });
 
-  // 8. Condo Documents Delivery - 5 calendar days (Paragraph 6(b), Line 77)
+  // Condo Rider CR-7 Rev. 06/2025 deadlines
   if (isCondo) {
-    deadlines.push({
-      id: 'condo-docs-delivery',
-      name: 'Condo/HOA Documents Delivery',
-      description: 'Seller must deliver condo/HOA documents and disclosures',
-      dueDate: addCalendarDays(effective, 5),
-      calendarDays: 5,
-      category: 'Condo',
-      priority: 'high',
-      appliesTo: 'condo',
-      contractReference: 'Paragraph 6(b)',
-    });
+    // 8. Seller initiates Condo Assoc. approval — §1, 5 calendar days forward from effective
+    if (condoAssocApprovalRequired) {
+      deadlines.push({
+        id: 'condo-assoc-approval-initiation',
+        name: 'Seller Initiates Condo Assoc. Approval',
+        description: 'Seller must initiate the condominium association approval process',
+        dueDate: addCalendarDays(effective, condoSellerInitiatesDays),
+        calendarDays: condoSellerInitiatesDays,
+        category: 'Condo',
+        priority: 'high',
+        appliesTo: 'condo',
+        contractReference: 'Condo Rider §1',
+      });
 
-    // 9. Buyer Condo Termination - 5 days after receipt (assume timely delivery)
-    deadlines.push({
-      id: 'condo-review-termination',
-      name: 'Condo Review Termination Right',
-      description: 'Buyer may terminate within 5 days after receiving condo docs',
-      dueDate: addCalendarDays(effective, 10), // 5 + 5
-      calendarDays: 10,
-      category: 'Condo',
-      priority: 'medium',
-      appliesTo: 'condo',
-      contractReference: 'Paragraph 6(b)',
-      note: 'Calculated assuming Seller delivers docs on time (day 5)',
-    });
+      // 9. Buyer approved by Condo Assoc. — §1, N calendar days backward from closing
+      deadlines.push({
+        id: 'condo-assoc-approval-deadline',
+        name: 'Buyer Approved by Condo Assoc.',
+        description: 'Buyer must be approved by the condominium association',
+        dueDate: subtractCalendarDays(closing, condoAssocApprovalDaysBefore),
+        calendarDays: condoAssocApprovalDaysBefore,
+        category: 'Condo',
+        priority: 'critical',
+        appliesTo: 'condo',
+        contractReference: 'Condo Rider §1',
+        calculatedFrom: 'closing',
+        isEstimated: isClosingEstimated,
+      });
+    }
+
+    // 10. Right of First Refusal docs — §2(c), 5 calendar days forward from effective
+    if (hasRightOfFirstRefusal) {
+      deadlines.push({
+        id: 'condo-rofr-docs',
+        name: 'Right of First Refusal Docs',
+        description: 'Documents related to right of first refusal must be signed and delivered',
+        dueDate: addCalendarDays(effective, 5),
+        calendarDays: 5,
+        category: 'Condo',
+        priority: 'high',
+        appliesTo: 'condo',
+        contractReference: 'Condo Rider §2(c)',
+      });
+    }
+
+    // 11. Nondeveloper disclosure termination — §5(b), 7 BUSINESS days from effective
+    // Only applies if docs were NOT provided before contract signing
+    if (!condoDocsPreProvided) {
+      deadlines.push({
+        id: 'condo-nondeveloper-termination',
+        name: 'Nondeveloper Disclosure Termination',
+        description: 'Buyer may void contract if condo docs (Declaration, Bylaws, Financials, FAQ) not previously provided',
+        dueDate: addBusinessDays(effective, 7),
+        businessDays: 7,
+        category: 'Condo',
+        priority: 'critical',
+        appliesTo: 'condo',
+        contractReference: 'Condo Rider §5(b)',
+        note: 'Counts BUSINESS DAYS (excl. Sat/Sun/Legal Holidays) — legally distinct from base contract calendar days',
+      });
+    }
+
+    // 12. Buyer's requested docs termination — §6(b), 7 BUSINESS days from receipt of all docs
+    // Calculated assuming seller delivers on condoSellerInitiatesDays
+    if (condoDocsBuyerRequested) {
+      deadlines.push({
+        id: 'condo-docs-request-termination',
+        name: "Buyer's Requested Docs Termination",
+        description: 'Buyer may terminate within 7 business days after receiving all requested condo docs',
+        dueDate: addBusinessDays(addCalendarDays(effective, condoSellerInitiatesDays), 7),
+        businessDays: 7,
+        category: 'Condo',
+        priority: 'high',
+        appliesTo: 'condo',
+        contractReference: 'Condo Rider §6(b)',
+        note: 'Counts BUSINESS DAYS from receipt of docs. Calculated assuming Seller delivers on initiation day.',
+        isConditional: true,
+      });
+    }
+
+    // 13. Milestone/SIRS/Turnover voidability — §9(d), 7 BUSINESS days from effective
+    // Applies when any qualifying inspection report has been completed
+    const completedReports = [
+      milestoneInspectionStatus === 'completed' ? 'Milestone Inspection (§553.899 F.S.)' : null,
+      sirsStatus === 'completed' ? 'SIRS (§§718.103(26)/718.112(2)(g) F.S.)' : null,
+      turnoverInspectionStatus === 'completed' ? 'Turnover Inspection (§718.301(4)(p)(q) F.S.)' : null,
+    ].filter(Boolean);
+
+    if (completedReports.length > 0) {
+      deadlines.push({
+        id: 'condo-inspection-voidability',
+        name: 'Milestone/SIRS/Turnover Voidability',
+        description: 'Buyer may void contract based on completed structural inspection reports',
+        dueDate: addBusinessDays(effective, 7),
+        businessDays: 7,
+        category: 'Condo',
+        priority: 'critical',
+        appliesTo: 'condo',
+        contractReference: 'Condo Rider §9(d)',
+        note: `Counts BUSINESS DAYS. Applies to: ${completedReports.join(', ')}`,
+      });
+    }
   }
 
   // ==========================================
@@ -358,6 +453,13 @@ export function calculateAllDeadlines(contractData) {
       isClosingEstimated,
       transactionType,
       isCondo,
+      condoAssocApprovalRequired,
+      hasRightOfFirstRefusal,
+      condoDocsPreProvided,
+      condoDocsBuyerRequested,
+      milestoneInspectionStatus,
+      sirsStatus,
+      turnoverInspectionStatus,
     }
   };
 }

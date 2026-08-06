@@ -8,6 +8,20 @@ function ManualEntryForm({ onSubmit }) {
     isCondo: false,
     propertyAddress: '',
     initialDepositDays: 3,
+    // Condo Rider §1
+    condoAssocApprovalRequired: false,
+    condoAssocApprovalDaysBefore: 5,
+    condoSellerInitiatesDays: 5,
+    // Condo Rider §2(c)
+    hasRightOfFirstRefusal: false,
+    // Condo Rider §5
+    condoDocsPreProvided: false,
+    // Condo Rider §6(b)
+    condoDocsBuyerRequested: false,
+    // Condo Rider §9(d)
+    milestoneInspectionStatus: 'not_required',
+    sirsStatus: 'not_required',
+    turnoverInspectionStatus: 'not_required',
   });
 
   const handleChange = (e) => {
@@ -37,6 +51,15 @@ function ManualEntryForm({ onSubmit }) {
       isCondo: false,
       propertyAddress: '',
       initialDepositDays: 3,
+      condoAssocApprovalRequired: false,
+      condoAssocApprovalDaysBefore: 5,
+      condoSellerInitiatesDays: 5,
+      hasRightOfFirstRefusal: false,
+      condoDocsPreProvided: false,
+      condoDocsBuyerRequested: false,
+      milestoneInspectionStatus: 'not_required',
+      sirsStatus: 'not_required',
+      turnoverInspectionStatus: 'not_required',
     });
   };
 
@@ -116,6 +139,144 @@ function ManualEntryForm({ onSubmit }) {
           </label>
         </div>
       </div>
+
+      {formData.isCondo && (
+        <div className="condo-rider-panel">
+          <h4 className="condo-rider-title">Condo Rider Details <span className="condo-rider-ref">(CR-7 Rev. 06/2025)</span></h4>
+
+          <div className="form-group checkbox-group">
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                name="condoAssocApprovalRequired"
+                checked={formData.condoAssocApprovalRequired}
+                onChange={handleChange}
+              />
+              <span>Association approval required? <span className="form-label-sub">(Condo Rider §1)</span></span>
+            </label>
+          </div>
+
+          {formData.condoAssocApprovalRequired && (
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="condoSellerInitiatesDays">
+                  Seller initiates approval <span className="form-label-sub">days after effective</span>
+                </label>
+                <input
+                  type="number"
+                  id="condoSellerInitiatesDays"
+                  name="condoSellerInitiatesDays"
+                  value={formData.condoSellerInitiatesDays}
+                  onChange={handleChange}
+                  min={1}
+                  max={30}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="condoAssocApprovalDaysBefore">
+                  Buyer approved <span className="form-label-sub">days before closing</span>
+                </label>
+                <input
+                  type="number"
+                  id="condoAssocApprovalDaysBefore"
+                  name="condoAssocApprovalDaysBefore"
+                  value={formData.condoAssocApprovalDaysBefore}
+                  onChange={handleChange}
+                  min={1}
+                  max={30}
+                />
+              </div>
+            </div>
+          )}
+
+          <div className="form-group checkbox-group">
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                name="hasRightOfFirstRefusal"
+                checked={formData.hasRightOfFirstRefusal}
+                onChange={handleChange}
+              />
+              <span>Right of First Refusal applies? <span className="form-label-sub">(Condo Rider §2(c))</span></span>
+            </label>
+          </div>
+
+          <div className="form-group checkbox-group">
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                name="condoDocsPreProvided"
+                checked={formData.condoDocsPreProvided}
+                onChange={handleChange}
+              />
+              <span>Condo docs provided before contract signing? <span className="form-label-sub">(§5(a) vs §5(b))</span></span>
+            </label>
+            <small>If unchecked, 7-business-day nondeveloper termination window applies</small>
+          </div>
+
+          <div className="form-group checkbox-group">
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                name="condoDocsBuyerRequested"
+                checked={formData.condoDocsBuyerRequested}
+                onChange={handleChange}
+              />
+              <span>Buyer requesting additional docs? <span className="form-label-sub">(Condo Rider §6(b))</span></span>
+            </label>
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="milestoneInspectionStatus">
+                Milestone Inspection <span className="form-label-sub">(§553.899 F.S.) — §9(a)</span>
+              </label>
+              <select
+                id="milestoneInspectionStatus"
+                name="milestoneInspectionStatus"
+                value={formData.milestoneInspectionStatus}
+                onChange={handleChange}
+              >
+                <option value="not_required">Not Required</option>
+                <option value="completed">Completed</option>
+                <option value="pending">Pending</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="sirsStatus">
+                SIRS <span className="form-label-sub">(§§718.103(26)/718.112(2)(g)) — §9(c)</span>
+              </label>
+              <select
+                id="sirsStatus"
+                name="sirsStatus"
+                value={formData.sirsStatus}
+                onChange={handleChange}
+              >
+                <option value="not_required">Not Required</option>
+                <option value="completed">Completed</option>
+                <option value="pending">Pending</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="turnoverInspectionStatus">
+                Turnover Inspection <span className="form-label-sub">(§718.301(4)(p)(q)) — §9(b)</span>
+              </label>
+              <select
+                id="turnoverInspectionStatus"
+                name="turnoverInspectionStatus"
+                value={formData.turnoverInspectionStatus}
+                onChange={handleChange}
+              >
+                <option value="not_required">Not Required</option>
+                <option value="completed">Completed</option>
+                <option value="pending">Pending</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="form-group">
         <label htmlFor="propertyAddress">Property Address (Optional)</label>
