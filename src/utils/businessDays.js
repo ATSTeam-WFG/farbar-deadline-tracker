@@ -3,7 +3,11 @@
  * Excludes weekends and federal holidays
  */
 
-// Federal Holidays (fixed and floating)
+/**
+ * Federal public holidays as defined by 5 U.S.C. § 6103.
+ * When a holiday falls on Saturday, the preceding Friday is observed.
+ * When a holiday falls on Sunday, the following Monday is observed.
+ */
 const FEDERAL_HOLIDAYS = {
   // Fixed date holidays
   newYearsDay: { month: 0, day: 1 }, // January 1

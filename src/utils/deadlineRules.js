@@ -31,6 +31,7 @@ export const DEADLINE_DEFINITIONS = [
   { id: 'title-commitment',        name: 'Title Evidence (Commitment) Due',      category: 'Title',              appliesTo: 'all',      note: '' },
   { id: 'title-objection',         name: 'Title Objection Deadline',             category: 'Title',              appliesTo: 'all',      note: 'Conditional on title commitment delivery' },
   { id: 'title-cure',              name: 'Title Cure Period Ends',               category: 'Title',              appliesTo: 'all',      note: 'Conditional – only if objections are raised' },
+  { id: 'title-cure-extended',     name: 'Extended Title Cure Period Ends',      category: 'Title',              appliesTo: 'all',      note: 'Buyer-invoked only — STANDARD A(ii). No addendum required.' },
   { id: 'survey',                  name: 'Survey Completion',                    category: 'Title',              appliesTo: 'all',      note: 'Optional – only if Buyer orders survey' },
   { id: 'estoppel-letters',        name: 'Estoppel Letters Due',                 category: 'Seller Obligations', appliesTo: 'all',      note: 'Only if property is subject to lease' },
   { id: 'walkthrough-option-1',    name: 'Walk-Through Inspection (Day Before)', category: 'Inspections',        appliesTo: 'all',      note: 'Buyer picks one walk-through option' },
@@ -73,6 +74,7 @@ export function calculateAllDeadlines(contractData) {
     milestoneInspectionStatus = 'not_required', // 'completed' | 'not_required' | 'pending'
     sirsStatus = 'not_required',
     turnoverInspectionStatus = 'not_required',
+    buyerInvokesExtendedCure = false,
   } = contractData;
 
   // Parse date strings as local time (not UTC) to avoid off-by-one day errors
@@ -101,7 +103,7 @@ export function calculateAllDeadlines(contractData) {
     id: 'initial-deposit',
     name: 'Initial Deposit Due',
     description: 'Buyer must deliver initial deposit to escrow agent',
-    dueDate: addCalendarDays(effective, initialDepositDays),
+    dueDate: addCalendarDays(effective, initialDepositDays + 1),
     calendarDays: initialDepositDays,
     category: 'Deposit',
     priority: 'critical',
@@ -114,7 +116,7 @@ export function calculateAllDeadlines(contractData) {
     id: 'additional-deposit',
     name: 'Additional Deposit Due',
     description: 'Buyer must deliver additional deposit to escrow agent',
-    dueDate: addCalendarDays(effective, 10),
+    dueDate: addCalendarDays(effective, 11),
     calendarDays: 10,
     category: 'Deposit',
     priority: 'high',
@@ -128,7 +130,7 @@ export function calculateAllDeadlines(contractData) {
       id: 'loan-application',
       name: 'Loan Application',
       description: 'Buyer must make application for financing',
-      dueDate: addCalendarDays(effective, 5),
+      dueDate: addCalendarDays(effective, 6),
       calendarDays: 5,
       category: 'Financing',
       priority: 'critical',
@@ -142,7 +144,7 @@ export function calculateAllDeadlines(contractData) {
     id: 'inspection-period',
     name: 'Inspection Period Ends',
     description: 'Buyer must complete all property inspections',
-    dueDate: addCalendarDays(effective, 15),
+    dueDate: addCalendarDays(effective, 16),
     calendarDays: 15,
     category: 'Inspection',
     priority: 'high',
@@ -155,7 +157,7 @@ export function calculateAllDeadlines(contractData) {
     id: 'flood-zone-termination',
     name: 'Flood Zone Termination Period',
     description: 'Buyer may terminate if property is in special flood hazard area',
-    dueDate: addCalendarDays(effective, 20),
+    dueDate: addCalendarDays(effective, 21),
     calendarDays: 20,
     category: 'Contingency',
     priority: 'medium',
@@ -169,7 +171,7 @@ export function calculateAllDeadlines(contractData) {
       id: 'loan-approval',
       name: 'Loan Approval Period Ends',
       description: 'Buyer must obtain loan approval (or notify Seller)',
-      dueDate: addCalendarDays(effective, 30),
+      dueDate: addCalendarDays(effective, 31),
       calendarDays: 30,
       category: 'Financing',
       priority: 'critical',
@@ -184,7 +186,7 @@ export function calculateAllDeadlines(contractData) {
     id: 'lease-disclosure',
     name: 'Seller Lease Disclosure',
     description: 'Seller must disclose any lease/occupancy agreements (if applicable)',
-    dueDate: addCalendarDays(effective, 5),
+    dueDate: addCalendarDays(effective, 6),
     calendarDays: 5,
     category: 'Seller Obligations',
     priority: 'medium',
@@ -201,7 +203,7 @@ export function calculateAllDeadlines(contractData) {
         id: 'condo-assoc-approval-initiation',
         name: 'Seller Initiates Condo Assoc. Approval',
         description: 'Seller must initiate the condominium association approval process',
-        dueDate: addCalendarDays(effective, condoSellerInitiatesDays),
+        dueDate: addCalendarDays(effective, condoSellerInitiatesDays + 1),
         calendarDays: condoSellerInitiatesDays,
         category: 'Condo',
         priority: 'high',
@@ -231,7 +233,7 @@ export function calculateAllDeadlines(contractData) {
         id: 'condo-rofr-docs',
         name: 'Right of First Refusal Docs',
         description: 'Documents related to right of first refusal must be signed and delivered',
-        dueDate: addCalendarDays(effective, 5),
+        dueDate: addCalendarDays(effective, 6),
         calendarDays: 5,
         category: 'Condo',
         priority: 'high',
@@ -444,6 +446,25 @@ export function calculateAllDeadlines(contractData) {
     isConditional: true,
   });
 
+  // Extended Cure Period — STANDARD A(ii), 120 cal days after standard cure ends
+  // Buyer invokes unilaterally; seller concurrence not required; no addendum needed unless provision is stricken
+  if (buyerInvokesExtendedCure) {
+    deadlines.push({
+      id: 'title-cure-extended',
+      name: 'Extended Title Cure Period Ends',
+      description: 'Buyer-invoked 120-day extended cure period (runs after standard 30-day cure)',
+      dueDate: addCalendarDays(titleObjectionDate, 150), // 30 standard + 120 extended
+      calendarDays: 120,
+      category: 'Title',
+      priority: 'high',
+      appliesTo: 'all',
+      contractReference: 'STANDARD A(ii)',
+      dependsOn: 'title-cure',
+      note: 'Both standard (30-day) and extended (120-day) cure periods must be invoked by Buyer. Seller concurrence not required. No addendum needed unless this provision was stricken.',
+      isConditional: true,
+    });
+  }
+
   // Sort by due date
   return {
     deadlines: deadlines.sort((a, b) => a.dueDate - b.dueDate),
@@ -460,6 +481,7 @@ export function calculateAllDeadlines(contractData) {
       milestoneInspectionStatus,
       sirsStatus,
       turnoverInspectionStatus,
+      buyerInvokesExtendedCure,
     }
   };
 }

@@ -32,6 +32,7 @@ FAR/BAR Contract Deadline Tracker for Florida real estate transactions. Automate
 | **Turnover Inspection Report** | Report for turnover inspections performed on/after July 1, 2023, per §718.301(4)(p)(q) F.S. |
 | **Condo Association Approval** | §1 of Condo Rider: buyer must be approved by association N calendar days before closing; seller must initiate the process N calendar days after effective date |
 | **Business Days (Condo Rider)** | The Condo Rider explicitly uses "excluding Saturdays, Sundays, and Legal Holidays" for its 7-day termination windows — distinct from the base FAR/BAR contract which uses calendar days throughout. Legally significant distinction. |
+| **STANDARD A(ii) Extended Cure** | After the standard 30-day cure period, the buyer may unilaterally invoke an additional 120-day extended cure period (150 calendar days total from title objection date). No seller consent and no addendum required unless this provision was stricken from the contract. Both cure periods must be explicitly invoked by the buyer. |
 | **Title Commitment** | Lender's (or title company's) written commitment to issue title insurance |
 | **Estoppel Letter** | Written statement from an HOA or condo association certifying dues, violations, and assessments owed at closing |
 | **Walk-Through** | Buyer's final inspection of the property before closing |
@@ -63,6 +64,7 @@ FAR/BAR Contract Deadline Tracker for Florida real estate transactions. Automate
 | 19 | Title Objection | 5 | Calendar | After title commitment received | STANDARD A(ii) | Conditional on title issues |
 | 20 | Title Cure | 30 | Calendar | After title objection | STANDARD A(ii) | Conditional on objection |
 | 21 | Closing Date | 0 | — | — | Para 4 | All contracts |
+| 22 | Extended Title Cure Period | 120 | Calendar | After standard 30-day cure ends | STANDARD A(ii) | Conditional — buyer must invoke both cure periods |
 
 ---
 
@@ -76,7 +78,7 @@ FAR/BAR Contract Deadline Tracker for Florida real estate transactions. Automate
 3. **Forward-counting deadlines** (from effective date): if the result is a weekend/holiday, move **forward** to the next business day.
 4. **Backward-counting deadlines** (from closing date): if the result is a weekend/holiday, move **backward** to the prior business day.
 
-### Federal Holidays Recognized
+### Federal Holidays Recognized (5 U.S.C. § 6103)
 
 - New Year's Day (January 1)
 - Martin Luther King Jr. Day (3rd Monday of January)
@@ -100,20 +102,12 @@ Counting begins **the calendar day after** the triggering event.
 - Contract signed (effective) on **Monday** → Day 1 = **Tuesday** → 3-day deposit due **Thursday**
 - Contract signed on **Friday** → Day 1 = **Saturday** → 3-day deposit raw = **Monday** → STANDARD F: due **Monday** (already a business day)
 
-### Known Bug (as of initial implementation)
-The current implementation begins counting **on** the effective date (Day 0 = effective date itself), which shifts every forward-counting deadline one day too early.
+### Fix Applied (John Redding — confirmed Aug 2026)
+The initial implementation incorrectly began counting **on** the effective date (Day 0 = effective date), shifting every forward-counting deadline one day too early.
 
-**Fix required:** Change `addCalendarDays(effectiveDate, N)` to use `effectiveDate + 1` as the base:
+**Resolution:** All forward-from-effective `addCalendarDays(effective, N)` calls changed to `addCalendarDays(effective, N + 1)` in `src/utils/deadlineRules.js`. Affected deadlines: Initial Deposit, Additional Deposit, Loan Application, Inspection Period, Flood Zone Termination, Loan Approval, Lease Disclosure, Condo Assoc. Approval Initiation, ROFR Docs.
 
-```js
-// WRONG (current):
-addDays(effectiveDate, N)
-
-// CORRECT (FAR/BAR):
-addDays(effectiveDate, N + 1)  // or: addDays(addDays(effectiveDate, 1), N)
-```
-
-Core files: `src/utils/deadlineRules.js`, `src/utils/businessDays.js`
+`addBusinessDays` was already correct (increments before checking) — condo rider §5(b), §6(b), §9(d) deadlines unchanged. Backward-counting deadlines (from closing) are not affected.
 
 ---
 
@@ -184,7 +178,7 @@ Voidability applies when **any** of the following are completed for the unit:
 
 | # | Issue | Severity | Status |
 |---|---|---|---|
-| 1 | Day-after counting bug — deadlines off by 1 day | High | Fix pending |
+| 1 | Day-after counting bug — deadlines off by 1 day | High | **Resolved** — N+1 fix applied to all 9 forward-from-effective deadlines (Aug 2026, confirmed by John Redding) |
 | 2 | Initial deposit days not configurable | Medium | Fix pending |
 | 3 | Condo rider dates outdated | Medium | In progress — CR-7 Rev. 06/2025 confirmed; 6 new deadline rules implemented |
 | 4 | Condo rider 7-day windows use business days; `addBusinessDays()` needed in `businessDays.js` | Medium | Resolved — `addBusinessDays()` already present; condo deadlines now use it |

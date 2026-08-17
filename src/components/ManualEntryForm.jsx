@@ -22,6 +22,8 @@ function ManualEntryForm({ onSubmit }) {
     milestoneInspectionStatus: 'not_required',
     sirsStatus: 'not_required',
     turnoverInspectionStatus: 'not_required',
+    // STANDARD A(ii)
+    buyerInvokesExtendedCure: false,
   });
 
   const handleChange = (e) => {
@@ -60,6 +62,7 @@ function ManualEntryForm({ onSubmit }) {
       milestoneInspectionStatus: 'not_required',
       sirsStatus: 'not_required',
       turnoverInspectionStatus: 'not_required',
+      buyerInvokesExtendedCure: false,
     });
   };
 
@@ -277,6 +280,18 @@ function ManualEntryForm({ onSubmit }) {
           </div>
         </div>
       )}
+
+      <div className="form-group checkbox-group">
+        <label className="checkbox-label">
+          <input type="checkbox" name="buyerInvokesExtendedCure"
+            checked={formData.buyerInvokesExtendedCure} onChange={handleChange} />
+          <span>Buyer invokes extended cure period? <span className="form-label-sub">(STANDARD A(ii))</span></span>
+        </label>
+        <small>
+          120 additional days after the standard 30-day cure. Buyer invokes unilaterally —
+          no seller consent or addendum required unless this provision is stricken from the contract.
+        </small>
+      </div>
 
       <div className="form-group">
         <label htmlFor="propertyAddress">Property Address (Optional)</label>
