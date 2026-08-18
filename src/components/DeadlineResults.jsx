@@ -6,6 +6,15 @@ import { saveSession } from '../services/sessionService';
 import { exportToPDF } from '../services/pdfExport';
 import CalendarView from './CalendarView';
 
+function formatRef(ref) {
+  if (!ref) return '';
+  return ref
+    .replace(/^Paragraph\s+/, '§ ')
+    .replace(/^Para\.\s+/, '§ ')
+    .replace(/^STANDARD\s+/, 'STD ')
+    .replace(/^Condo Rider\s+/, 'CR ');
+}
+
 // Category display config: order, label, color tier
 const CATEGORY_CONFIG = [
   { key: 'Deposit',          label: 'Deposits',           tier: 'critical', defaultOpen: true },
@@ -70,7 +79,7 @@ function DeadlineGroup({ config, deadlines, isFinanced }) {
                   {deadline.note && (
                     <div className="deadline-note">NOTE: {deadline.note}</div>
                   )}
-                  <div className="deadline-reference">Ref: {deadline.contractReference}</div>
+                  <div className="deadline-reference">{formatRef(deadline.contractReference)}</div>
                 </div>
 
                 <div className="deadline-row-date">
@@ -84,7 +93,7 @@ function DeadlineGroup({ config, deadlines, isFinanced }) {
                 </div>
 
                 <div className="deadline-row-days">
-                  {deadline.calendarDays > 0 ? `${deadline.calendarDays} cal` : '—'}
+                  {deadline.calendarDays > 0 ? `${deadline.calendarDays} cal · ${Math.abs(days)} d` : '—'}
                 </div>
 
                 <div className="deadline-row-remaining">
@@ -240,29 +249,29 @@ function DeadlineResults({ result, contractData, hiddenDeadlines = new Set(), on
         </div>
       </div>
 
-      {/* Contract Summary */}
-      <div className="contract-summary">
-        <div className="summary-item">
-          <span className="label">Effective Date</span>
-          <span className="value">{formatDate(contractData.effectiveDate)}</span>
-        </div>
-        <div className="summary-item">
-          <span className="label">Transaction Type</span>
-          <span className="value">{isFinanced ? 'Financed' : 'Cash'}</span>
-        </div>
+      {/* Contract Summary Strip */}
+      <div className="contract-summary-strip">
+        <dl>
+          <dt>Effective Date</dt>
+          <dd>{formatDate(contractData.effectiveDate)}</dd>
+        </dl>
+        <dl>
+          <dt>Transaction Type</dt>
+          <dd>{isFinanced ? 'Financed' : 'Cash'}</dd>
+        </dl>
         {contractData.isCondo && (
-          <div className="summary-item">
-            <span className="label">Property Type</span>
-            <span className="value">Condo / HOA</span>
-          </div>
+          <dl>
+            <dt>Property Type</dt>
+            <dd>Condo / HOA</dd>
+          </dl>
         )}
-        <div className="summary-item">
-          <span className="label">Closing Date</span>
-          <span className="value">
+        <dl>
+          <dt>Closing Date</dt>
+          <dd>
             {formatDate(metadata.closingDate)}
             {metadata.isClosingEstimated && <span className="estimated-badge"> (Est.)</span>}
-          </span>
-        </div>
+          </dd>
+        </dl>
       </div>
 
       {/* Notices */}
@@ -306,7 +315,10 @@ function DeadlineResults({ result, contractData, hiddenDeadlines = new Set(), on
 
       {/* Calendar View */}
       {viewMode === 'calendar' && (
-        <CalendarView deadlines={result.deadlines} hiddenDeadlines={hiddenDeadlines} />
+        <CalendarView
+          deadlines={result.deadlines}
+          hiddenDeadlines={hiddenDeadlines}
+        />
       )}
 
       {/* Grouped Accordion List */}
@@ -320,45 +332,6 @@ function DeadlineResults({ result, contractData, hiddenDeadlines = new Set(), on
               isFinanced={isFinanced}
             />
           ))}
-        </div>
-      )}
-
-      {/* Legend */}
-      {viewMode === 'list' && (
-        <div className="legend-section">
-          <div className="legend-column">
-            <div className="legend-title">Status Legend</div>
-            <div className="legend-items">
-              {[
-                { cls: 'overdue',   label: 'Overdue',        desc: 'Past deadline' },
-                { cls: 'due-today', label: 'Due Today',      desc: 'Due today' },
-                { cls: 'urgent',    label: 'Urgent',         desc: 'Within 3 days' },
-                { cls: 'upcoming',  label: 'Upcoming',       desc: 'Within 7 days' },
-                { cls: 'future',    label: 'Future',         desc: 'More than 7 days' },
-              ].map(s => (
-                <div key={s.cls} className="legend-item">
-                  <span className={`status-badge status-${s.cls}`}>{s.label}</span>
-                  <span>{s.desc}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="legend-column">
-            <div className="legend-title">Indicators</div>
-            <div className="legend-items">
-              {[
-                { badge: '[EST]',         desc: 'Calculated from estimated closing date' },
-                { badge: '[OPT]',         desc: 'Multiple options available' },
-                { badge: 'NOTE',          desc: 'Special notes or conditions apply' },
-                { badge: 'Conditional',   desc: 'May vary if prior deadlines missed' },
-              ].map(i => (
-                <div key={i.badge} className="legend-item">
-                  <span className="legend-badge">{i.badge}</span>
-                  <span>{i.desc}</span>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
       )}
 

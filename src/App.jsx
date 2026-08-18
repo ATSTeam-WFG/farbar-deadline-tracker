@@ -3,17 +3,35 @@ import ManualEntryForm from './components/ManualEntryForm';
 import PDFUpload from './components/PDFUpload';
 import DeadlineResults from './components/DeadlineResults';
 import DeadlineConfig from './components/DeadlineConfig';
-import AuthButton from './components/AuthButton';
 import NotificationCenter from './components/NotificationCenter';
 import NotificationSettings from './components/NotificationSettings';
 import Dashboard from './components/Dashboard';
 import Sidebar from './components/Sidebar';
-import { useAuth } from './contexts/AuthContext';
+import DisclaimerModal from './components/DisclaimerModal';
 import { calculateAllDeadlines } from './utils/deadlineRules';
 import './App.css';
 
+function FeedbackButton() {
+  return (
+    <a
+      href="https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=o6hYNyq_bUuqce_63KT3Ta7fqjmMiadGmU6Gof7Q8-pUNk1DOTQ1RjM0R0lMVzY0SldXOUtPVjRESC4u"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="feedback-btn"
+      aria-label="Share feedback"
+    >
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+      </svg>
+      <span>Feedback</span>
+    </a>
+  );
+}
+
 function App() {
-  const { currentUser } = useAuth();
+  const [showDisclaimer, setShowDisclaimer] = useState(
+    !localStorage.getItem('wfg_disclaimer_v1')
+  );
   const [inputMethod, setInputMethod] = useState('manual');
   const [result, setResult] = useState(null);
   const [contractData, setContractData] = useState(null);
@@ -164,7 +182,7 @@ function App() {
   };
 
   const pageTitles = {
-    calculator: 'Calculator',
+    calculator: 'Deadline Tracker',
     reports: 'My Reports',
     notifications: 'Notifications',
     settings: 'Settings',
@@ -172,10 +190,17 @@ function App() {
 
   return (
     <div className="app-layout">
+      {showDisclaimer && (
+        <DisclaimerModal onAgree={() => {
+          localStorage.setItem('wfg_disclaimer_v1', 'accepted');
+          setShowDisclaimer(false);
+        }} />
+      )}
+
       <Sidebar
         activeView={activeView}
         onViewChange={setActiveView}
-        currentUser={currentUser}
+        currentUser={null}
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
       />
@@ -203,7 +228,7 @@ function App() {
 
           <div className="topbar-actions">
             {activeView === 'calculator' && result && (
-              <button className="topbar-action-btn" onClick={handleReset} title="New Calculation">
+              <button className="topbar-action-btn" onClick={handleReset} title="New Contract">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
                   <polyline points="9 22 9 12 15 12 15 22" />
@@ -211,9 +236,6 @@ function App() {
                 <span>New</span>
               </button>
             )}
-            <div className="topbar-auth">
-              <AuthButton />
-            </div>
           </div>
         </header>
 
@@ -221,6 +243,8 @@ function App() {
           {(panelMap[activeView] || panelMap.calculator)()}
         </main>
       </div>
+
+      <FeedbackButton />
     </div>
   );
 }

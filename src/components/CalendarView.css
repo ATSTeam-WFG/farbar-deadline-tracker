@@ -34,6 +34,10 @@
   cursor: pointer;
   transition: all var(--transition-fast);
   flex-shrink: 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  font-family: 'Inter', sans-serif;
+  line-height: 1;
 }
 
 .cal-nav-btn:hover {
@@ -182,11 +186,11 @@
 }
 
 /* Status tints */
-.calendar-day--has-overdue   { background: rgba(220, 38, 38, 0.04); }
-.calendar-day--has-due-today { background: rgba(217, 119, 6, 0.05); }
-.calendar-day--has-urgent    { background: rgba(217, 119, 6, 0.04); }
-.calendar-day--has-upcoming  { background: rgba(8, 145, 178, 0.04); }
-.calendar-day--has-future    { background: rgba(22, 163, 74, 0.03); }
+.calendar-day--has-overdue   { background: rgba(155, 58, 58, 0.05); }
+.calendar-day--has-due-today { background: rgba(184, 152, 90, 0.06); }
+.calendar-day--has-urgent    { background: rgba(154, 114, 64, 0.05); }
+.calendar-day--has-upcoming  { background: rgba(74, 107, 148, 0.05); }
+.calendar-day--has-future    { background: transparent; }
 
 /* Today cell */
 .calendar-day--today .calendar-day-number {
@@ -227,11 +231,11 @@
   flex-shrink: 0;
 }
 
-.cal-dot--overdue   { background: var(--danger-color); }
-.cal-dot--due-today { background: var(--warning-color); }
-.cal-dot--urgent    { background: #f59e0b; }
-.cal-dot--upcoming  { background: var(--info-color); }
-.cal-dot--future    { background: var(--success-color); }
+.cal-dot--overdue   { background: #9B3A3A; }
+.cal-dot--due-today { background: #B8985A; }
+.cal-dot--urgent    { background: #9A7240; }
+.cal-dot--upcoming  { background: #4A6B94; }
+.cal-dot--future    { background: #6A6560; opacity: 0.6; }
 
 /* Count badge (3+ deadlines) */
 .cal-dot-badge {
@@ -247,11 +251,11 @@
   color: #fff;
 }
 
-.cal-dot-badge--overdue   { background: var(--danger-color); }
-.cal-dot-badge--due-today { background: var(--warning-color); }
-.cal-dot-badge--urgent    { background: #f59e0b; }
-.cal-dot-badge--upcoming  { background: var(--info-color); }
-.cal-dot-badge--future    { background: var(--success-color); }
+.cal-dot-badge--overdue   { background: #9B3A3A; }
+.cal-dot-badge--due-today { background: #B8985A; }
+.cal-dot-badge--urgent    { background: #9A7240; }
+.cal-dot-badge--upcoming  { background: #4A6B94; }
+.cal-dot-badge--future    { background: #6A6560; }
 
 /* ============================================================
    Detail Panel
@@ -325,11 +329,11 @@
   border-bottom: 1px solid var(--border-color);
 }
 
-.cal-detail-card--overdue   { border-left-color: var(--danger-color); }
-.cal-detail-card--due-today { border-left-color: var(--warning-color); }
-.cal-detail-card--urgent    { border-left-color: #f59e0b; }
-.cal-detail-card--upcoming  { border-left-color: var(--info-color); }
-.cal-detail-card--future    { border-left-color: var(--success-color); }
+.cal-detail-card--overdue   { border-left-color: #9B3A3A; }
+.cal-detail-card--due-today { border-left-color: #B8985A; }
+.cal-detail-card--urgent    { border-left-color: #9A7240; }
+.cal-detail-card--upcoming  { border-left-color: #4A6B94; }
+.cal-detail-card--future    { border-left-color: #6A6560; }
 
 .cal-detail-card-name {
   font-size: 0.875rem;

@@ -116,9 +116,7 @@ function CalendarView({ deadlines, hiddenDeadlines = new Set() }) {
       {/* Controls */}
       <div className="calendar-controls">
         <button className="cal-nav-btn" onClick={() => navigate('left')} aria-label="Previous month">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-            <polyline points="15 18 9 12 15 6" />
-          </svg>
+          &lt;
         </button>
         <div className="cal-month-label">
           <span className="cal-month-name">{MONTH_NAMES[month]}</span>
@@ -126,9 +124,7 @@ function CalendarView({ deadlines, hiddenDeadlines = new Set() }) {
         </div>
         <button className="cal-today-btn" onClick={goToToday}>Today</button>
         <button className="cal-nav-btn" onClick={() => navigate('right')} aria-label="Next month">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-            <polyline points="9 18 15 12 9 6" />
-          </svg>
+          &gt;
         </button>
       </div>
 

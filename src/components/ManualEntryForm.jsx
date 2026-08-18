@@ -68,34 +68,40 @@ function ManualEntryForm({ onSubmit }) {
 
   return (
     <form onSubmit={handleSubmit} className="manual-form">
-      <div className="form-group">
-        <label htmlFor="effectiveDate">
-          Effective Date <span className="required">*</span>
-        </label>
-        <input
-          type="date"
-          id="effectiveDate"
-          name="effectiveDate"
-          value={formData.effectiveDate}
-          onChange={handleChange}
-          required
-        />
-        <small>Date when last party signed and delivered the contract</small>
+      <div className="form-section-label">Contract Dates</div>
+
+      <div className="form-row form-row--2col">
+        <div className="form-group">
+          <label htmlFor="effectiveDate">
+            Effective Date <span className="required">*</span>
+          </label>
+          <input
+            type="date"
+            id="effectiveDate"
+            name="effectiveDate"
+            value={formData.effectiveDate}
+            onChange={handleChange}
+            required
+          />
+          <small>Date when last party signed and delivered the contract</small>
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="closingDate">Closing Date (Optional)</label>
+          <input
+            type="date"
+            id="closingDate"
+            name="closingDate"
+            value={formData.closingDate}
+            onChange={handleChange}
+          />
+          <small>Leave blank to estimate ({formData.transactionType === 'cash' ? '~30 days' : formData.transactionType === 'financed' ? '~45 days' : '30-45 days'} typical)</small>
+        </div>
       </div>
 
-      <div className="form-group">
-        <label htmlFor="closingDate">Closing Date (Optional)</label>
-        <input
-          type="date"
-          id="closingDate"
-          name="closingDate"
-          value={formData.closingDate}
-          onChange={handleChange}
-        />
-        <small>Leave blank to estimate ({formData.transactionType === 'cash' ? '~30 days' : formData.transactionType === 'financed' ? '~45 days' : '30-45 days'} typical)</small>
-      </div>
+      <div className="form-section-label">Transaction Details</div>
 
-      <div className="form-row">
+      <div className="form-row form-row--2col">
         <div className="form-group">
           <label htmlFor="transactionType">
             Transaction Type <span className="required">*</span>
@@ -128,19 +134,19 @@ function ManualEntryForm({ onSubmit }) {
           />
           <small>Default per FAR/BAR. Edit if contract specifies differently.</small>
         </div>
+      </div>
 
-        <div className="form-group checkbox-group">
-          <label className="checkbox-label">
-            <input
-              type="checkbox"
-              id="isCondo"
-              name="isCondo"
-              checked={formData.isCondo}
-              onChange={handleChange}
-            />
-            <span>Condo/HOA Property</span>
-          </label>
-        </div>
+      <div className="form-group checkbox-group">
+        <label className="checkbox-label">
+          <input
+            type="checkbox"
+            id="isCondo"
+            name="isCondo"
+            checked={formData.isCondo}
+            onChange={handleChange}
+          />
+          <span>Condominium / HOA Property</span>
+        </label>
       </div>
 
       {formData.isCondo && (
@@ -281,16 +287,21 @@ function ManualEntryForm({ onSubmit }) {
         </div>
       )}
 
-      <div className="form-group checkbox-group">
-        <label className="checkbox-label">
-          <input type="checkbox" name="buyerInvokesExtendedCure"
-            checked={formData.buyerInvokesExtendedCure} onChange={handleChange} />
-          <span>Buyer invokes extended cure period? <span className="form-label-sub">(STANDARD A(ii))</span></span>
+      <div className="form-section-label">Title Options</div>
+
+      <div className="extended-cure-card">
+        <label className="checkbox-label extended-cure-label">
+          <input
+            type="checkbox"
+            name="buyerInvokesExtendedCure"
+            checked={formData.buyerInvokesExtendedCure}
+            onChange={handleChange}
+          />
+          <div className="extended-cure-text">
+            <span>Buyer Elects Extended Cure Period <span className="form-label-sub">(STANDARD A(ii))</span></span>
+            <small>120 additional days after the standard 30-day cure. Buyer invokes unilaterally — no seller consent or addendum required unless this provision is stricken from the contract.</small>
+          </div>
         </label>
-        <small>
-          120 additional days after the standard 30-day cure. Buyer invokes unilaterally —
-          no seller consent or addendum required unless this provision is stricken from the contract.
-        </small>
       </div>
 
       <div className="form-group">
