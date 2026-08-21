@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ManualEntryForm from './components/ManualEntryForm';
 import PDFUpload from './components/PDFUpload';
 import DeadlineResults from './components/DeadlineResults';
@@ -8,7 +8,13 @@ import NotificationSettings from './components/NotificationSettings';
 import Dashboard from './components/Dashboard';
 import Sidebar from './components/Sidebar';
 import DisclaimerModal from './components/DisclaimerModal';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import AuthButton from './components/AuthButton';
+import AuthModal from './components/AuthModal';
+import { supabase } from './lib/supabase';
 import { calculateAllDeadlines } from './utils/deadlineRules';
+import { getUserReports } from './services/reportService';
+import { getDeadlineStatuses } from './services/deadlineStatusService';
 import './App.css';
 
 function FeedbackButton() {
@@ -28,10 +34,45 @@ function FeedbackButton() {
   );
 }
 
-function App() {
+function AppContent() {
+  const { currentUser } = useAuth();
   const [showDisclaimer, setShowDisclaimer] = useState(
     !localStorage.getItem('wfg_disclaimer_v1')
   );
+  const [authError, setAuthError] = useState('');
+  const [showSignInAfterConfirm, setShowSignInAfterConfirm] = useState(false);
+
+  // Handle Supabase auth callbacks (email confirmation, PKCE code exchange, error fragments)
+  useEffect(() => {
+    const hash = window.location.hash;
+    const params = new URLSearchParams(hash.replace(/^#/, ''));
+    const errorCode = params.get('error_code');
+    const errorDesc = params.get('error_description');
+
+    if (errorCode === 'otp_expired') {
+      setAuthError('Your confirmation link has expired. Please sign up again or request a new link.');
+      window.history.replaceState(null, '', window.location.pathname);
+      return;
+    }
+
+    if (errorCode) {
+      setAuthError(decodeURIComponent(errorDesc || 'Authentication error. Please try again.').replace(/\+/g, ' '));
+      window.history.replaceState(null, '', window.location.pathname);
+      return;
+    }
+
+    // PKCE code exchange — Supabase sends ?code= for email confirmations
+    const searchParams = new URLSearchParams(window.location.search);
+    const code = searchParams.get('code');
+    if (code) {
+      supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
+        if (error) {
+          setAuthError('Confirmation link is invalid or expired. Please try again.');
+        }
+        window.history.replaceState(null, '', window.location.pathname);
+      });
+    }
+  }, []);
   const [inputMethod, setInputMethod] = useState('manual');
   const [result, setResult] = useState(null);
   const [contractData, setContractData] = useState(null);
@@ -39,29 +80,83 @@ function App() {
   const [activeView, setActiveView] = useState('calculator');
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  // Report persistence state
+  const [savedReportId, setSavedReportId] = useState(null);
+  const [savedReports, setSavedReports] = useState([]);
+  const [calendarStatuses, setCalendarStatuses] = useState({});
+
+  // Load saved reports list when user signs in
+  useEffect(() => {
+    if (currentUser) {
+      getUserReports(currentUser.id)
+        .then(setSavedReports)
+        .catch(console.error);
+    } else {
+      setSavedReports([]);
+    }
+  }, [currentUser]);
+
   const handleCalculate = (formData) => {
     const calculatedResult = calculateAllDeadlines(formData);
     setResult(calculatedResult);
     setContractData(formData);
+    setSavedReportId(null);
+    setCalendarStatuses({});
   };
 
   const handleReset = () => {
     setResult(null);
     setContractData(null);
-  };
-
-  const handleExtractedData = (data) => {
-    handleCalculate(data);
-  };
-
-  const handleConfigSave = (newHiddenSet) => {
-    setHiddenDeadlines(newHiddenSet);
+    setSavedReportId(null);
+    setCalendarStatuses({});
   };
 
   const handleLoadSession = (session) => {
     setContractData(session.contractData);
     setResult(session.result);
+    setSavedReportId(session.id || null);
+    setCalendarStatuses({});
     setActiveView('calculator');
+
+    if (session.id) {
+      getDeadlineStatuses(session.id)
+        .then(setCalendarStatuses)
+        .catch(console.error);
+    }
+  };
+
+  const handleReportSaved = (id) => {
+    setSavedReportId(id);
+    // Refresh the reports list
+    if (currentUser) {
+      getUserReports(currentUser.id)
+        .then(setSavedReports)
+        .catch(console.error);
+    }
+  };
+
+  const handleSwitchCalendarReport = async (reportId) => {
+    if (!reportId) {
+      // Switch back to current unsaved calculation
+      return;
+    }
+    const report = savedReports.find(r => r.id === reportId);
+    if (!report) return;
+
+    setResult(report.result);
+    setContractData(report.contract_data);
+    setSavedReportId(report.id);
+
+    try {
+      const statuses = await getDeadlineStatuses(report.id);
+      setCalendarStatuses(statuses);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleConfigSave = (newHiddenSet) => {
+    setHiddenDeadlines(newHiddenSet);
   };
 
   const hiddenCount = hiddenDeadlines.size;
@@ -108,7 +203,7 @@ function App() {
             {inputMethod === 'manual' ? (
               <ManualEntryForm onSubmit={handleCalculate} />
             ) : (
-              <PDFUpload onExtractedData={handleExtractedData} />
+              <PDFUpload onExtractedData={handleCalculate} />
             )}
           </div>
         </div>
@@ -118,6 +213,9 @@ function App() {
           contractData={contractData}
           hiddenDeadlines={hiddenDeadlines}
           onReset={handleReset}
+          savedReportId={savedReportId}
+          onReportSaved={handleReportSaved}
+          onSwitchView={setActiveView}
         />
       )}
     </div>
@@ -197,10 +295,25 @@ function App() {
         }} />
       )}
 
+      {authError && (
+        <div className="auth-callback-error" role="alert">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          <span>{authError}</span>
+          <button onClick={() => { setAuthError(''); setShowSignInAfterConfirm(true); }}>Sign In</button>
+          <button className="auth-callback-error-close" onClick={() => setAuthError('')} aria-label="Dismiss">×</button>
+        </div>
+      )}
+
+      {showSignInAfterConfirm && (
+        <AuthModal onClose={() => setShowSignInAfterConfirm(false)} />
+      )}
+
       <Sidebar
         activeView={activeView}
         onViewChange={setActiveView}
-        currentUser={null}
+        currentUser={currentUser}
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
       />
@@ -240,6 +353,7 @@ function App() {
                 <span>New</span>
               </button>
             )}
+            <AuthButton onNavigate={setActiveView} />
           </div>
         </header>
 
@@ -250,6 +364,14 @@ function App() {
 
       <FeedbackButton />
     </div>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 

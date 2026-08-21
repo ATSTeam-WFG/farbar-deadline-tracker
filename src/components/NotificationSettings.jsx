@@ -28,7 +28,7 @@ function NotificationSettings({ onClose }) {
 
     setLoading(true);
     try {
-      const userPrefs = await getUserPreferences(currentUser.uid);
+      const userPrefs = await getUserPreferences(currentUser.id);
       if (userPrefs) {
         setPreferences(userPrefs);
       }
@@ -42,7 +42,7 @@ function NotificationSettings({ onClose }) {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await updateUserPreferences(currentUser.uid, preferences);
+      await updateUserPreferences(currentUser.id, preferences);
 
       // Show success message
       const message = document.createElement('div');
@@ -284,7 +284,7 @@ function NotificationSettings({ onClose }) {
               </svg>
               <div>
                 <strong>Email Notification Setup Required</strong>
-                <p>To receive email notifications, your organization needs to configure Firebase Cloud Functions with an email service. Contact your administrator for setup assistance.</p>
+                <p>Email notifications are sent via Resend using a Supabase Edge Function. See SUPABASE_SETUP.md for activation instructions.</p>
               </div>
             </div>
           )}

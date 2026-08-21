@@ -10,6 +10,76 @@
   gap: 1rem;
 }
 
+/* Report switcher */
+.calendar-report-switcher {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.625rem 1rem;
+  background: var(--gray-50);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-md);
+}
+
+.calendar-report-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.calendar-report-select {
+  flex: 1;
+  padding: 0.375rem 0.625rem;
+  border: 1px solid var(--gray-300);
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  background: white;
+  cursor: pointer;
+  outline: none;
+}
+
+.calendar-report-select:focus {
+  border-color: var(--accent-gold);
+}
+
+/* Completed / waived chip variants */
+.cal-chip--completed {
+  background: #d1fae5;
+  color: #065f46;
+  border-color: #6ee7b7;
+  opacity: 0.8;
+}
+
+.cal-chip--waived {
+  background: var(--gray-200);
+  color: var(--gray-600);
+  text-decoration: line-through;
+}
+
+.cal-dot--completed {
+  background: #10b981;
+}
+
+.cal-dot--waived {
+  background: var(--gray-400);
+}
+
+.cal-detail-card--done {
+  opacity: 0.65;
+}
+
+.cal-detail-card--done .cal-detail-card-name {
+  text-decoration: line-through;
+}
+
+.cal-detail-card-note--user {
+  color: var(--accent-gold-dark);
+  font-style: italic;
+}
+
 /* Controls bar */
 .calendar-controls {
   display: flex;

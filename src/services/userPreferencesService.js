@@ -1,99 +1,54 @@
-/**
- * User Preferences Service
- * Handles saving and loading user notification preferences in Firestore
- */
+import { supabase } from '../lib/supabase';
 
-import {
-  doc,
-  getDoc,
-  setDoc,
-  updateDoc,
-  serverTimestamp
-} from 'firebase/firestore';
-import { db } from '../firebase/config';
+const DEFAULT_PREFERENCES = {
+  emailNotifications: false,
+  notifyDaysBefore: 3,
+  notificationTime: '09:00',
+  deadlineTypes: {
+    critical: true,
+    urgent: true,
+    warning: true,
+    info: false,
+  },
+};
 
-const PREFERENCES_COLLECTION = 'userPreferences';
-
-/**
- * Get user notification preferences
- */
 export async function getUserPreferences(userId) {
-  try {
-    console.log('Fetching preferences for user:', userId);
+  const { data, error } = await supabase
+    .from('user_preferences')
+    .select('*')
+    .eq('user_id', userId)
+    .maybeSingle();
 
-    const docRef = doc(db, PREFERENCES_COLLECTION, userId);
-    const docSnap = await getDoc(docRef);
+  if (error) throw error;
+  if (!data) return { ...DEFAULT_PREFERENCES };
 
-    if (docSnap.exists()) {
-      console.log('User preferences found:', docSnap.data());
-      return docSnap.data();
-    } else {
-      console.log('No preferences found, returning defaults');
-      // Return default preferences
-      return {
-        emailNotifications: false,
-        notifyDaysBefore: 3,
-        notificationTime: '09:00',
-        deadlineTypes: {
-          critical: true,
-          urgent: true,
-          warning: true,
-          info: false
-        }
-      };
-    }
-  } catch (error) {
-    console.error('Error fetching user preferences:', error);
-    throw error;
-  }
+  return {
+    emailNotifications: data.email_notifications,
+    notifyDaysBefore: data.notify_days_before,
+    notificationTime: data.notification_time,
+    deadlineTypes: data.deadline_types,
+    hiddenDeadlineIds: data.hidden_deadline_ids ?? [],
+  };
 }
 
-/**
- * Update or create user notification preferences
- */
 export async function updateUserPreferences(userId, preferences) {
-  try {
-    console.log('Updating preferences for user:', userId);
-    console.log('New preferences:', preferences);
+  const row = {
+    user_id: userId,
+    email_notifications: preferences.emailNotifications,
+    notify_days_before: preferences.notifyDaysBefore,
+    notification_time: preferences.notificationTime,
+    deadline_types: preferences.deadlineTypes,
+    updated_at: new Date().toISOString(),
+  };
 
-    const docRef = doc(db, PREFERENCES_COLLECTION, userId);
-    const docSnap = await getDoc(docRef);
-
-    if (docSnap.exists()) {
-      // Update existing preferences
-      await updateDoc(docRef, {
-        ...preferences,
-        updatedAt: serverTimestamp()
-      });
-      console.log('Preferences updated successfully');
-    } else {
-      // Create new preferences document
-      await setDoc(docRef, {
-        ...preferences,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-      });
-      console.log('Preferences created successfully');
-    }
-
-    return true;
-  } catch (error) {
-    console.error('Error updating user preferences:', error);
-    console.error('Error code:', error.code);
-    console.error('Error message:', error.message);
-    throw error;
+  if (preferences.hiddenDeadlineIds !== undefined) {
+    row.hidden_deadline_ids = preferences.hiddenDeadlineIds;
   }
-}
 
-/**
- * Check if user has email notifications enabled
- */
-export async function hasEmailNotificationsEnabled(userId) {
-  try {
-    const preferences = await getUserPreferences(userId);
-    return preferences?.emailNotifications || false;
-  } catch (error) {
-    console.error('Error checking email notifications:', error);
-    return false;
-  }
+  const { error } = await supabase
+    .from('user_preferences')
+    .upsert(row, { onConflict: 'user_id' });
+
+  if (error) throw error;
+  return true;
 }

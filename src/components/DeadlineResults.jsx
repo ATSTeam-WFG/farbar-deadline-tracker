@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { daysRemaining, formatDate } from '../utils/businessDays';
 import { getDeadlineStatus, getStatusLabel } from '../utils/deadlineRules';
 import { useAuth } from '../contexts/AuthContext';
-import { saveSession } from '../services/sessionService';
+import { saveReport } from '../services/reportService';
+import { getDeadlineStatuses, upsertDeadlineStatus } from '../services/deadlineStatusService';
 import { exportToPDF } from '../services/pdfExport';
 import CalendarView from './CalendarView';
 
@@ -15,16 +16,22 @@ function formatRef(ref) {
     .replace(/^Condo Rider\s+/, 'CR ');
 }
 
-// Category display config: order, label, color tier
 const CATEGORY_CONFIG = [
-  { key: 'Deposit',          label: 'Deposits',           tier: 'critical', defaultOpen: true },
-  { key: 'Financing',        label: 'Financing',          tier: 'high',     defaultOpen: true },
-  { key: 'Inspection',       label: 'Inspections',        tier: 'high',     defaultOpen: true },
-  { key: 'Contingency',      label: 'Contingencies',      tier: 'standard', defaultOpen: false },
-  { key: 'Title',            label: 'Title',              tier: 'standard', defaultOpen: false },
+  { key: 'Deposit',            label: 'Deposits',           tier: 'critical', defaultOpen: true },
+  { key: 'Financing',          label: 'Financing',          tier: 'high',     defaultOpen: true },
+  { key: 'Inspection',         label: 'Inspections',        tier: 'high',     defaultOpen: true },
+  { key: 'Contingency',        label: 'Contingencies',      tier: 'standard', defaultOpen: false },
+  { key: 'Title',              label: 'Title',              tier: 'standard', defaultOpen: false },
   { key: 'Seller Obligations', label: 'Seller Obligations', tier: 'standard', defaultOpen: false },
-  { key: 'Condo',            label: 'Condo / HOA',        tier: 'standard', defaultOpen: false },
-  { key: 'Closing',          label: 'Closing',            tier: 'closing',  defaultOpen: true },
+  { key: 'Condo',              label: 'Condo / HOA',        tier: 'standard', defaultOpen: false },
+  { key: 'Closing',            label: 'Closing',            tier: 'closing',  defaultOpen: true },
+];
+
+const DEADLINE_STATUS_OPTIONS = [
+  { value: 'pending',   label: 'Pending' },
+  { value: 'completed', label: 'Completed' },
+  { value: 'waived',    label: 'Waived' },
+  { value: 'extended',  label: 'Extended' },
 ];
 
 function ChevronIcon({ open }) {
@@ -40,7 +47,80 @@ function ChevronIcon({ open }) {
   );
 }
 
-function DeadlineGroup({ config, deadlines, isFinanced }) {
+function DeadlineStatusControl({ deadlineId, reportId, userId, initialStatus, initialNote, onChange }) {
+  const [status, setStatus] = useState(initialStatus || 'pending');
+  const [note, setNote] = useState(initialNote || '');
+  const [showNote, setShowNote] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const handleStatusChange = async (newStatus) => {
+    setStatus(newStatus);
+    const needsNote = newStatus === 'waived' || newStatus === 'extended';
+    if (needsNote) setShowNote(true);
+
+    if (!reportId) return;
+    setSaving(true);
+    try {
+      await upsertDeadlineStatus(reportId, userId, deadlineId, newStatus, note || null);
+      onChange?.(deadlineId, newStatus, note);
+    } catch (err) {
+      console.error('Failed to save deadline status:', err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleNoteSave = async () => {
+    if (!reportId) return;
+    setSaving(true);
+    try {
+      await upsertDeadlineStatus(reportId, userId, deadlineId, status, note || null);
+      onChange?.(deadlineId, status, note);
+      setShowNote(false);
+    } catch (err) {
+      console.error('Failed to save deadline note:', err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="deadline-status-control">
+      <div className="deadline-status-pills">
+        {DEADLINE_STATUS_OPTIONS.map(opt => (
+          <button
+            key={opt.value}
+            className={`deadline-status-pill deadline-status-pill--${opt.value}${status === opt.value ? ' deadline-status-pill--active' : ''}`}
+            onClick={() => handleStatusChange(opt.value)}
+            disabled={saving}
+            title={opt.label}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
+      {showNote && (
+        <div className="deadline-status-note-row">
+          <input
+            className="deadline-status-note-input"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="Add a note (optional)"
+            onKeyDown={(e) => e.key === 'Enter' && handleNoteSave()}
+          />
+          <button className="deadline-status-note-save" onClick={handleNoteSave} disabled={saving}>
+            {saving ? '...' : 'Save'}
+          </button>
+          <button className="deadline-status-note-cancel" onClick={() => setShowNote(false)}>
+            Cancel
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DeadlineGroup({ config, deadlines, isFinanced, reportId, userId, statuses, onStatusChange }) {
   const [open, setOpen] = useState(config.defaultOpen || (config.key === 'Financing' && isFinanced));
 
   if (deadlines.length === 0) return null;
@@ -63,9 +143,18 @@ function DeadlineGroup({ config, deadlines, isFinanced }) {
         <div className="deadline-group-rows">
           {deadlines.map(deadline => {
             const days = daysRemaining(deadline.dueDate);
-            const status = getDeadlineStatus(days);
+            const urgencyStatus = getDeadlineStatus(days);
+            const dlStatus = statuses[deadline.id]?.status || 'pending';
+            const dlNote = statuses[deadline.id]?.note || '';
+            const isCompleted = dlStatus === 'completed';
+            const isWaived = dlStatus === 'waived';
+            const isExtended = dlStatus === 'extended';
+
             return (
-              <div key={deadline.id} className={`deadline-row deadline-row--${status}`}>
+              <div
+                key={deadline.id}
+                className={`deadline-row deadline-row--${urgencyStatus}${isCompleted ? ' deadline-row--done' : ''}${isWaived ? ' deadline-row--waived' : ''}`}
+              >
                 <div className="deadline-row-name">
                   <div className="deadline-name">
                     {deadline.name}
@@ -74,10 +163,16 @@ function DeadlineGroup({ config, deadlines, isFinanced }) {
                     {deadline.priority === 'critical' && (
                       <span className="badge-critical">CRITICAL</span>
                     )}
+                    {isCompleted && <span className="badge-dl-status badge-dl-status--completed">Completed</span>}
+                    {isWaived && <span className="badge-dl-status badge-dl-status--waived">Waived</span>}
+                    {isExtended && <span className="badge-dl-status badge-dl-status--extended">Extended</span>}
                   </div>
                   <div className="deadline-description">{deadline.description}</div>
                   {deadline.note && (
                     <div className="deadline-note"><span className="deadline-note-label">NOTE:</span> {deadline.note}</div>
+                  )}
+                  {dlNote && (
+                    <div className="deadline-note deadline-note--user"><span className="deadline-note-label">YOUR NOTE:</span> {dlNote}</div>
                   )}
                   <div className="deadline-reference">{formatRef(deadline.contractReference)}</div>
                 </div>
@@ -103,9 +198,19 @@ function DeadlineGroup({ config, deadlines, isFinanced }) {
                 </div>
 
                 <div className="deadline-row-status">
-                  <span className={`status-badge status-${status}`}>
-                    {getStatusLabel(status)}
+                  <span className={`status-badge status-${urgencyStatus}`}>
+                    {getStatusLabel(urgencyStatus)}
                   </span>
+                  {reportId && (
+                    <DeadlineStatusControl
+                      deadlineId={deadline.id}
+                      reportId={reportId}
+                      userId={userId}
+                      initialStatus={dlStatus}
+                      initialNote={dlNote}
+                      onChange={onStatusChange}
+                    />
+                  )}
                 </div>
               </div>
             );
@@ -116,10 +221,62 @@ function DeadlineGroup({ config, deadlines, isFinanced }) {
   );
 }
 
-function DeadlineResults({ result, contractData, hiddenDeadlines = new Set(), onReset }) {
+function SaveModal({ onSave, onCancel, defaultName }) {
+  const [name, setName] = useState(defaultName || '');
+
+  return (
+    <div className="save-modal-overlay" onClick={onCancel}>
+      <div className="save-modal" onClick={(e) => e.stopPropagation()}>
+        <h3>Save Report</h3>
+        <p>Give this report a name (or use the property address).</p>
+        <input
+          className="save-modal-input"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="e.g. 123 Oak St or Smith Transaction"
+          onKeyDown={(e) => e.key === 'Enter' && onSave(name.trim())}
+          autoFocus
+          maxLength={120}
+        />
+        <div className="save-modal-actions">
+          <button className="btn-secondary btn-secondary--sm" onClick={onCancel}>Cancel</button>
+          <button className="btn-primary btn-primary--sm" onClick={() => onSave(name.trim())}>
+            Save Report
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DeadlineResults({ result, contractData, hiddenDeadlines = new Set(), onReset, savedReportId, onReportSaved, onSwitchView }) {
   const { currentUser } = useAuth();
   const [saving, setSaving] = useState(false);
   const [viewMode, setViewMode] = useState('list');
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [reportId, setReportId] = useState(savedReportId || null);
+  const [statuses, setStatuses] = useState({});
+
+  useEffect(() => {
+    setReportId(savedReportId || null);
+  }, [savedReportId]);
+
+  useEffect(() => {
+    if (reportId) {
+      getDeadlineStatuses(reportId)
+        .then(setStatuses)
+        .catch(console.error);
+    } else {
+      setStatuses({});
+    }
+  }, [reportId]);
+
+  const handleStatusChange = useCallback((deadlineId, status, note) => {
+    setStatuses(prev => ({
+      ...prev,
+      [deadlineId]: { status, note },
+    }));
+  }, []);
 
   if (!result || !result.deadlines || result.deadlines.length === 0) {
     return null;
@@ -136,57 +293,69 @@ function DeadlineResults({ result, contractData, hiddenDeadlines = new Set(), on
     return days >= 0 && days <= 7;
   }).length;
 
-  // Group deadlines by category in the defined order
   const groupedDeadlines = CATEGORY_CONFIG.map(config => ({
     config,
     deadlines: deadlines.filter(d => d.category === config.key),
   })).filter(g => g.deadlines.length > 0);
 
-  const handleSaveSession = async () => {
-    if (!currentUser) {
-      alert('Please sign in to save calculations');
-      return;
-    }
+  const performSave = async (reportName) => {
+    setShowSaveModal(false);
     setSaving(true);
     try {
       if (!result?.deadlines?.length) throw new Error('No deadline data to save');
-      await saveSession(currentUser.uid, { contractData, result });
+      const id = await saveReport(currentUser.id, { contractData, result }, reportName);
+      setReportId(id);
+      onReportSaved?.(id);
 
       const message = document.createElement('div');
-      message.textContent = '✓ Calculation saved successfully!';
+      message.textContent = '✓ Report saved! View in Reports tab.';
       message.style.cssText = `
-        position: fixed; top: 80px; right: 20px;
-        background: linear-gradient(135deg, #10b981, #059669);
-        color: white; padding: 1rem 1.5rem; border-radius: 0.5rem;
-        box-shadow: 0 10px 25px rgba(16,185,129,0.3);
-        font-weight: 600; z-index: 10000; animation: slideInRight 0.3s ease;
+        position:fixed;top:80px;right:20px;
+        background:linear-gradient(135deg,#10b981,#059669);
+        color:white;padding:1rem 1.5rem;border-radius:0.5rem;
+        box-shadow:0 10px 25px rgba(16,185,129,0.3);
+        font-weight:600;z-index:10000;
       `;
       document.body.appendChild(message);
-      setTimeout(() => {
-        message.style.animation = 'slideOutRight 0.3s ease';
-        setTimeout(() => message.remove(), 300);
-      }, 3000);
+      setTimeout(() => message.remove(), 3000);
     } catch (error) {
-      console.error('Error saving session:', error);
       alert(`Failed to save: ${error.message}`);
     } finally {
       setSaving(false);
     }
   };
 
+  const handleSaveClick = () => {
+    if (!currentUser) {
+      alert('Please sign in to save calculations');
+      return;
+    }
+    if (reportId) {
+      alert('This report is already saved. Changes to deadline statuses are auto-saved.');
+      return;
+    }
+    setShowSaveModal(true);
+  };
+
   const handleExportPDF = () => {
     try {
       exportToPDF(result, contractData);
     } catch (error) {
-      console.error('Error exporting PDF:', error);
       alert('Failed to export PDF. Please try again.');
     }
   };
 
   return (
     <div className="results-section">
+      {showSaveModal && (
+        <SaveModal
+          defaultName={contractData.propertyAddress || ''}
+          onSave={performSave}
+          onCancel={() => setShowSaveModal(false)}
+        />
+      )}
+
       <div className="results-header">
-        {/* Row 1: Title */}
         <div className="results-title-block">
           <h2>Contract Deadlines</h2>
           {contractData.propertyAddress && (
@@ -194,7 +363,6 @@ function DeadlineResults({ result, contractData, hiddenDeadlines = new Set(), on
           )}
         </div>
 
-        {/* Row 2: Metrics strip */}
         <div className="results-metrics-strip">
           <span className="results-metric">
             <strong>{totalCount}</strong> Deadlines
@@ -213,25 +381,27 @@ function DeadlineResults({ result, contractData, hiddenDeadlines = new Set(), on
             Closing <strong>{formatDate(metadata.closingDate)}</strong>
             {metadata.isClosingEstimated && <span className="estimated-badge"> Est.</span>}
           </span>
+          {reportId && (
+            <span className="results-metric results-metric--saved">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
+                <polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>
+              </svg>
+              Saved
+            </span>
+          )}
         </div>
 
-        {/* Row 3: Controls row */}
         <div className="results-controls-row">
           <div className="input-method-toggle results-view-toggle">
-            <button
-              className={`toggle-btn${viewMode === 'list' ? ' active' : ''}`}
-              onClick={() => setViewMode('list')}
-            >
+            <button className={`toggle-btn${viewMode === 'list' ? ' active' : ''}`} onClick={() => setViewMode('list')}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '5px', verticalAlign: 'middle' }}>
                 <line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" />
                 <line x1="3" y1="6" x2="3.01" y2="6" /><line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" />
               </svg>
               List
             </button>
-            <button
-              className={`toggle-btn${viewMode === 'calendar' ? ' active' : ''}`}
-              onClick={() => setViewMode('calendar')}
-            >
+            <button className={`toggle-btn${viewMode === 'calendar' ? ' active' : ''}`} onClick={() => setViewMode('calendar')}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '5px', verticalAlign: 'middle' }}>
                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
                 <line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
@@ -241,13 +411,13 @@ function DeadlineResults({ result, contractData, hiddenDeadlines = new Set(), on
           </div>
           <div className="results-actions">
             {currentUser && (
-              <button className="btn-secondary btn-secondary--sm" onClick={handleSaveSession} disabled={saving}>
+              <button className="btn-secondary btn-secondary--sm" onClick={handleSaveClick} disabled={saving || !!reportId}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" />
                   <polyline points="17 21 17 13 7 13 7 21" />
                   <polyline points="7 3 7 8 15 8" />
                 </svg>
-                {saving ? 'Saving...' : 'Save'}
+                {saving ? 'Saving...' : reportId ? 'Saved' : 'Save'}
               </button>
             )}
             <button className="btn-secondary btn-secondary--sm" onClick={handleExportPDF}>
@@ -274,22 +444,10 @@ function DeadlineResults({ result, contractData, hiddenDeadlines = new Set(), on
         </div>
       </div>
 
-      {/* Contract Summary Strip */}
       <div className="contract-summary-strip">
-        <dl>
-          <dt>Effective Date</dt>
-          <dd>{formatDate(contractData.effectiveDate)}</dd>
-        </dl>
-        <dl>
-          <dt>Transaction Type</dt>
-          <dd>{isFinanced ? 'Financed' : 'Cash'}</dd>
-        </dl>
-        {contractData.isCondo && (
-          <dl>
-            <dt>Property Type</dt>
-            <dd>Condo / HOA</dd>
-          </dl>
-        )}
+        <dl><dt>Effective Date</dt><dd>{formatDate(contractData.effectiveDate)}</dd></dl>
+        <dl><dt>Transaction Type</dt><dd>{isFinanced ? 'Financed' : 'Cash'}</dd></dl>
+        {contractData.isCondo && <dl><dt>Property Type</dt><dd>Condo / HOA</dd></dl>}
         <dl>
           <dt>Closing Date</dt>
           <dd>
@@ -299,7 +457,6 @@ function DeadlineResults({ result, contractData, hiddenDeadlines = new Set(), on
         </dl>
       </div>
 
-      {/* Notice Banners */}
       <div className="notice-banner notice-banner--info">
         <svg className="notice-banner-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
@@ -319,7 +476,6 @@ function DeadlineResults({ result, contractData, hiddenDeadlines = new Set(), on
             <p className="notice-banner-title">Estimated Closing Date</p>
             <p className="notice-banner-text">
               No closing date provided. Using industry standard of {contractData.transactionType === 'cash' ? '30' : '45'} days.
-              Deadlines marked [EST] will update when the actual closing date is entered.
             </p>
           </div>
         </div>
@@ -337,15 +493,14 @@ function DeadlineResults({ result, contractData, hiddenDeadlines = new Set(), on
         </div>
       )}
 
-      {/* Calendar View */}
       {viewMode === 'calendar' && (
         <CalendarView
           deadlines={result.deadlines}
           hiddenDeadlines={hiddenDeadlines}
+          statuses={statuses}
         />
       )}
 
-      {/* Grouped Accordion List */}
       {viewMode === 'list' && (
         <div className="deadline-groups">
           {groupedDeadlines.map(({ config, deadlines: groupDeadlines }) => (
@@ -354,12 +509,15 @@ function DeadlineResults({ result, contractData, hiddenDeadlines = new Set(), on
               config={config}
               deadlines={groupDeadlines}
               isFinanced={isFinanced}
+              reportId={reportId}
+              userId={currentUser?.id}
+              statuses={statuses}
+              onStatusChange={handleStatusChange}
             />
           ))}
         </div>
       )}
 
-      {/* List view legend */}
       {viewMode === 'list' && (
         <div className="list-legend">
           {[
@@ -377,7 +535,6 @@ function DeadlineResults({ result, contractData, hiddenDeadlines = new Set(), on
         </div>
       )}
 
-      {/* Disclaimer */}
       <div className="disclaimer-footer">
         <strong>IMPORTANT DISCLAIMER:</strong> This calculator is for informational purposes only.
         All dates should be verified against the actual FAR/BAR contract.

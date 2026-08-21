@@ -2223,6 +2223,270 @@ h1, h2, h3, h4 {
 }
 
 /* ============================================================
+   AUTH CALLBACK ERROR BANNER
+   ============================================================ */
+.auth-callback-error {
+  position: fixed;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-left: 4px solid #dc2626;
+  color: #b91c1c;
+  padding: 0.875rem 1.25rem;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  z-index: 9999;
+  max-width: 520px;
+  width: calc(100% - 2rem);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.auth-callback-error svg {
+  flex-shrink: 0;
+}
+
+.auth-callback-error span {
+  flex: 1;
+}
+
+.auth-callback-error button {
+  background: #dc2626;
+  color: white;
+  border: none;
+  padding: 0.375rem 0.875rem;
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.auth-callback-error-close {
+  background: none !important;
+  color: #b91c1c !important;
+  font-size: 1.25rem !important;
+  padding: 0 0.25rem !important;
+  line-height: 1;
+}
+
+/* ============================================================
+   DEADLINE STATUS TRACKING
+   ============================================================ */
+.deadline-row--done .deadline-name {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
+.deadline-row--waived .deadline-name {
+  text-decoration: line-through;
+  opacity: 0.5;
+  color: var(--gray-500);
+}
+
+.badge-dl-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-left: 0.5rem;
+}
+
+.badge-dl-status--completed {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.badge-dl-status--waived {
+  background: var(--gray-200);
+  color: var(--gray-600);
+}
+
+.badge-dl-status--extended {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.deadline-status-control {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.deadline-status-pills {
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.deadline-status-pill {
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.15s;
+  background: var(--gray-100);
+  color: var(--gray-600);
+}
+
+.deadline-status-pill:hover:not(:disabled) {
+  border-color: var(--gray-400);
+}
+
+.deadline-status-pill--pending.deadline-status-pill--active {
+  background: var(--gray-200);
+  color: var(--gray-800);
+  border-color: var(--gray-400);
+}
+
+.deadline-status-pill--completed.deadline-status-pill--active {
+  background: #d1fae5;
+  color: #065f46;
+  border-color: #6ee7b7;
+}
+
+.deadline-status-pill--waived.deadline-status-pill--active {
+  background: var(--gray-200);
+  color: var(--gray-700);
+  border-color: var(--gray-500);
+}
+
+.deadline-status-pill--extended.deadline-status-pill--active {
+  background: #dbeafe;
+  color: #1e40af;
+  border-color: #93c5fd;
+}
+
+.deadline-status-note-row {
+  display: flex;
+  gap: 0.375rem;
+  align-items: center;
+  margin-top: 0.25rem;
+}
+
+.deadline-status-note-input {
+  flex: 1;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--gray-300);
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 0.8rem;
+  outline: none;
+}
+
+.deadline-status-note-input:focus {
+  border-color: var(--accent-gold);
+}
+
+.deadline-status-note-save {
+  padding: 0.25rem 0.625rem;
+  background: var(--accent-gold);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.deadline-status-note-cancel {
+  padding: 0.25rem 0.625rem;
+  background: var(--gray-100);
+  color: var(--text-secondary);
+  border: 1px solid var(--gray-300);
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.deadline-note--user {
+  color: var(--accent-gold-dark);
+  font-style: italic;
+}
+
+.results-metric--saved {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: #065f46;
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+/* Save Modal */
+.save-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5000;
+  padding: 1rem;
+}
+
+.save-modal {
+  background: white;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+  padding: 2rem;
+  width: 100%;
+  max-width: 440px;
+}
+
+.save-modal h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem;
+  color: var(--text-primary);
+}
+
+.save-modal p {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin: 0 0 1rem;
+}
+
+.save-modal-input {
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  border: 1px solid var(--gray-300);
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 0.9rem;
+  outline: none;
+  margin-bottom: 1rem;
+  box-sizing: border-box;
+}
+
+.save-modal-input:focus {
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 0 3px rgba(196, 165, 116, 0.15);
+}
+
+.save-modal-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+/* ============================================================
    CONFIGURE RESPONSIVE
    ============================================================ */
 @media (max-width: 600px) {

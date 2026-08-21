@@ -290,6 +290,197 @@
   opacity: 1;
 }
 
+/* Filters bar */
+.dashboard-filters {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem 2.5rem;
+  border-bottom: 1px solid var(--gray-200);
+  background: var(--gray-50);
+}
+
+.dashboard-filter-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.dashboard-select {
+  padding: 0.375rem 0.625rem;
+  border: 1px solid var(--gray-300);
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 0.875rem;
+  background: white;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+/* Card header actions */
+.session-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+.session-rename-input {
+  flex: 1;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  border: 1px solid var(--accent-gold);
+  border-radius: var(--radius-sm);
+  padding: 0.25rem 0.5rem;
+  font-family: inherit;
+  outline: none;
+  width: 100%;
+}
+
+.session-icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--gray-400);
+  padding: 0.375rem;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.session-icon-btn:hover {
+  background: var(--gray-100);
+  color: var(--text-primary);
+}
+
+/* Status badge */
+.session-status-wrapper {
+  position: relative;
+}
+
+.session-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.session-status-badge--active {
+  background: #ecfdf5;
+  color: #065f46;
+  border-color: #6ee7b7;
+}
+
+.session-status-badge--closed {
+  background: #f3f4f6;
+  color: #374151;
+  border-color: #d1d5db;
+}
+
+.session-status-badge--archived {
+  background: #faf5ff;
+  color: #6b21a8;
+  border-color: #d8b4fe;
+}
+
+.session-status-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+}
+
+.session-status-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  background: white;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  z-index: 101;
+  min-width: 140px;
+  overflow: hidden;
+}
+
+.session-status-option {
+  display: block;
+  width: 100%;
+  padding: 0.625rem 1rem;
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: 0.875rem;
+  text-align: left;
+  cursor: pointer;
+  color: var(--text-primary);
+}
+
+.session-status-option:hover {
+  background: var(--gray-50);
+}
+
+/* Progress bar */
+.session-progress {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.session-progress-bar {
+  flex: 1;
+  height: 6px;
+  background: var(--gray-200);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.session-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-gold), var(--accent-gold-light));
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.session-progress-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+/* Load button */
+.session-load-btn {
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: 0.8125rem;
+  color: var(--accent-gold-dark);
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  transition: color var(--transition-fast);
+}
+
+.session-load-btn:hover {
+  color: var(--accent-gold);
+}
+
+/* Inline mode */
+.dashboard-modal--inline {
+  max-height: none;
+  box-shadow: none;
+  border-radius: 0;
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
   .dashboard-grid {

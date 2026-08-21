@@ -1,10 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import {
-  signInWithPopup,
-  signOut,
-  onAuthStateChanged
-} from 'firebase/auth';
-import { auth, googleProvider } from '../firebase/config';
+import { supabase } from '../lib/supabase';
 
 const AuthContext = createContext();
 
@@ -16,41 +11,53 @@ export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Sign in with Google
-  const signInWithGoogle = async () => {
-    try {
-      const result = await signInWithPopup(auth, googleProvider);
-      return result.user;
-    } catch (error) {
-      console.error('Error signing in with Google:', error);
-      throw error;
-    }
+  const signUp = async (email, password, fullName) => {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { full_name: fullName } },
+    });
+    if (error) throw error;
+    return data.user;
   };
 
-  // Sign out
+  const signIn = async (email, password) => {
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    return data.user;
+  };
+
   const logout = async () => {
-    try {
-      await signOut(auth);
-    } catch (error) {
-      console.error('Error signing out:', error);
-      throw error;
-    }
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
   };
 
-  // Listen for auth state changes
+  const resetPassword = async (email) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin,
+    });
+    if (error) throw error;
+  };
+
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setCurrentUser(user);
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setCurrentUser(session?.user ?? null);
       setLoading(false);
     });
 
-    return unsubscribe;
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setCurrentUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const value = {
     currentUser,
-    signInWithGoogle,
+    signUp,
+    signIn,
     logout,
+    resetPassword,
   };
 
   return (

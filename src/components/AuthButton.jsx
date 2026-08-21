@@ -1,95 +1,58 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import NotificationSettings from './NotificationSettings';
+import AuthModal from './AuthModal';
 import './AuthButton.css';
 
-function AuthButton() {
-  const { currentUser, signInWithGoogle, logout } = useAuth();
+function AuthButton({ onNavigate }) {
+  const { currentUser, logout } = useAuth();
+  const [showModal, setShowModal] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [imageError, setImageError] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
-
-  const handleSignIn = async () => {
-    setLoading(true);
-    try {
-      await signInWithGoogle();
-    } catch (error) {
-      alert('Failed to sign in. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleSignOut = async () => {
     try {
       await logout();
       setShowMenu(false);
-    } catch (error) {
+    } catch {
       alert('Failed to sign out. Please try again.');
     }
   };
 
-  if (!currentUser) {
-    return (
-      <button
-        className="auth-signin-btn"
-        onClick={handleSignIn}
-        disabled={loading}
-      >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4" />
-          <polyline points="10 17 15 12 10 7" />
-          <line x1="15" y1="12" x2="3" y2="12" />
-        </svg>
-        {loading ? 'Signing in...' : 'Sign In'}
-      </button>
-    );
-  }
-
-  const getInitials = (name) => {
-    if (!name) return 'U';
-    const parts = name.split(' ');
+  const getInitials = (user) => {
+    const name = user.user_metadata?.full_name || user.email || '';
+    const parts = name.split(' ').filter(Boolean);
     if (parts.length >= 2) {
       return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
     }
     return name.substring(0, 2).toUpperCase();
   };
 
-  const renderAvatar = () => {
-    if (currentUser.photoURL && !imageError) {
-      return (
-        <img
-          src={currentUser.photoURL}
-          alt={currentUser.displayName}
-          className="auth-user-avatar"
-          onError={() => setImageError(true)}
-          referrerPolicy="no-referrer"
-        />
-      );
-    }
-
-    // Fallback to initials avatar
+  if (!currentUser) {
     return (
-      <div className="auth-user-avatar auth-avatar-fallback">
-        <span>{getInitials(currentUser.displayName || currentUser.email)}</span>
-      </div>
+      <>
+        <button className="auth-signin-btn" onClick={() => setShowModal(true)}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4" />
+            <polyline points="10 17 15 12 10 7" />
+            <line x1="15" y1="12" x2="3" y2="12" />
+          </svg>
+          Sign In
+        </button>
+        {showModal && <AuthModal onClose={() => setShowModal(false)} />}
+      </>
     );
-  };
+  }
+
+  const displayName = currentUser.user_metadata?.full_name || currentUser.email || 'User';
 
   return (
     <div className="auth-user-menu">
-      <button
-        className="auth-user-btn"
-        onClick={() => setShowMenu(!showMenu)}
-      >
-        {renderAvatar()}
-        <span className="auth-user-name">{currentUser.displayName || 'User'}</span>
+      <button className="auth-user-btn" onClick={() => setShowMenu(!showMenu)}>
+        <div className="auth-user-avatar auth-avatar-fallback">
+          <span>{getInitials(currentUser)}</span>
+        </div>
+        <span className="auth-user-name">{displayName}</span>
         <svg
-          width="12"
-          height="12"
-          viewBox="0 0 12 12"
-          fill="currentColor"
+          width="12" height="12" viewBox="0 0 12 12" fill="currentColor"
           style={{ transform: showMenu ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}
         >
           <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="2" fill="none" />
@@ -101,38 +64,30 @@ function AuthButton() {
           <div className="auth-menu-overlay" onClick={() => setShowMenu(false)} />
           <div className="auth-dropdown-menu">
             <div className="auth-menu-header">
-              {currentUser.photoURL && !imageError ? (
-                <img
-                  src={currentUser.photoURL}
-                  alt={currentUser.displayName}
-                  className="auth-menu-avatar"
-                  onError={() => setImageError(true)}
-                  referrerPolicy="no-referrer"
-                />
-              ) : (
-                <div className="auth-menu-avatar auth-avatar-fallback">
-                  <span>{getInitials(currentUser.displayName || currentUser.email)}</span>
-                </div>
-              )}
+              <div className="auth-menu-avatar auth-avatar-fallback">
+                <span>{getInitials(currentUser)}</span>
+              </div>
               <div>
-                <div className="auth-menu-name">{currentUser.displayName}</div>
+                <div className="auth-menu-name">{currentUser.user_metadata?.full_name || 'User'}</div>
                 <div className="auth-menu-email">{currentUser.email}</div>
               </div>
             </div>
             <div className="auth-menu-divider" />
-            <button
-              className="auth-menu-item"
-              onClick={() => {
-                setShowSettings(true);
-                setShowMenu(false);
-              }}
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-              </svg>
-              Notification Settings
-            </button>
+            {onNavigate && (
+              <button
+                className="auth-menu-item"
+                onClick={() => { onNavigate('reports'); setShowMenu(false); }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                  <line x1="16" y1="13" x2="8" y2="13" />
+                  <line x1="16" y1="17" x2="8" y2="17" />
+                  <polyline points="10 9 9 9 8 9" />
+                </svg>
+                My Reports
+              </button>
+            )}
             <button className="auth-menu-item" onClick={handleSignOut}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
@@ -143,11 +98,6 @@ function AuthButton() {
             </button>
           </div>
         </>
-      )}
-
-      {/* Notification Settings Modal */}
-      {showSettings && (
-        <NotificationSettings onClose={() => setShowSettings(false)} />
       )}
     </div>
   );
