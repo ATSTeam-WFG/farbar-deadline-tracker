@@ -12,7 +12,7 @@ function DisclaimerModal({ onAgree }) {
         <div className="disclaimer-modal-header">
           <img src="/logo.png" alt="WFG National Title" className="disclaimer-modal-logo" />
           <h1 id="disclaimer-title" className="disclaimer-modal-title">FAR/BAR Deadline Tracker</h1>
-          <p className="disclaimer-modal-subtitle">Beta Access — Early Release</p>
+          <p className="disclaimer-modal-subtitle">Beta Access | Early Release</p>
         </div>
 
         <div className="disclaimer-modal-body">
@@ -22,7 +22,7 @@ function DisclaimerModal({ onAgree }) {
             professionals on real-world title closing scenarios.
           </p>
 
-          <p className="disclaimer-modal-notice-label">IMPORTANT — PLEASE READ BEFORE CONTINUING</p>
+          <p className="disclaimer-modal-notice-label">IMPORTANT: PLEASE READ BEFORE CONTINUING</p>
 
           <p>
             All deadline calculations displayed by this tool are generated programmatically
@@ -53,7 +53,7 @@ function DisclaimerModal({ onAgree }) {
 
         <div className="disclaimer-modal-footer">
           <button className="disclaimer-modal-btn" onClick={onAgree}>
-            I Agree — Continue to Deadline Tracker
+            I Agree: Continue to Deadline Tracker
           </button>
         </div>
       </div>

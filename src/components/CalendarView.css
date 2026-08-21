@@ -123,7 +123,7 @@
 .calendar-month-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  background: var(--surface-color);
+  background: var(--bg-secondary);
 }
 
 /* Entry animations */
@@ -147,7 +147,7 @@
 
 /* Individual day cells */
 .calendar-day {
-  min-height: 82px;
+  min-height: 90px;
   padding: 0.5rem;
   border-right: 1px solid var(--border-color);
   border-bottom: 1px solid var(--border-color);
@@ -164,7 +164,7 @@
 }
 
 .calendar-day--other-month {
-  background: var(--gray-50);
+  background: var(--bg-tertiary);
 }
 
 .calendar-day--other-month .calendar-day-number {
@@ -214,15 +214,49 @@
   line-height: 1;
 }
 
-/* Dot container */
-.calendar-day-dots {
+/* Chip container */
+.calendar-day-chips {
   display: flex;
-  flex-wrap: wrap;
-  gap: 3px;
-  margin-top: auto;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 2px;
+  width: 100%;
 }
 
-/* Colored dots */
+/* Category chip */
+.cal-chip {
+  display: block;
+  font-size: 0.55rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  letter-spacing: 0.04em;
+  padding: 1px 4px;
+  border-radius: 2px;
+  border-left: 2.5px solid transparent;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.5;
+}
+
+.cal-chip--overdue   { border-left-color: #9B3A3A; background: rgba(155,58,58,0.1); color: #7A2E2E; }
+.cal-chip--due-today { border-left-color: #B8985A; background: rgba(184,152,90,0.1); color: #6B4D1A; }
+.cal-chip--urgent    { border-left-color: #9A7240; background: rgba(154,114,64,0.1); color: #5C3D1A; }
+.cal-chip--upcoming  { border-left-color: #4A6B94; background: rgba(74,107,148,0.1); color: #294060; }
+.cal-chip--future    { border-left-color: #6A6560; background: rgba(106,101,96,0.08); color: var(--stone); }
+
+/* Overflow badge */
+.cal-chip-more {
+  font-size: 0.55rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  padding: 1px 4px;
+  border-radius: 2px;
+  color: var(--text-secondary);
+  background: var(--bg-tertiary);
+}
+
+/* Keep dots for calendar legend */
 .cal-dot {
   display: inline-block;
   width: 7px;
@@ -236,26 +270,6 @@
 .cal-dot--urgent    { background: #9A7240; }
 .cal-dot--upcoming  { background: #4A6B94; }
 .cal-dot--future    { background: #6A6560; opacity: 0.6; }
-
-/* Count badge (3+ deadlines) */
-.cal-dot-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 18px;
-  height: 18px;
-  border-radius: 9px;
-  font-size: 0.6875rem;
-  font-weight: 700;
-  padding: 0 4px;
-  color: #fff;
-}
-
-.cal-dot-badge--overdue   { background: #9B3A3A; }
-.cal-dot-badge--due-today { background: #B8985A; }
-.cal-dot-badge--urgent    { background: #9A7240; }
-.cal-dot-badge--upcoming  { background: #4A6B94; }
-.cal-dot-badge--future    { background: #6A6560; }
 
 /* ============================================================
    Detail Panel

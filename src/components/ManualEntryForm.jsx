@@ -238,7 +238,7 @@ function ManualEntryForm({ onSubmit }) {
           <div className="form-row">
             <div className="form-group">
               <label htmlFor="milestoneInspectionStatus">
-                Milestone Inspection <span className="form-label-sub">(§553.899 F.S.) — §9(a)</span>
+                Milestone Inspection <span className="form-label-sub">(§553.899 F.S.), §9(a)</span>
               </label>
               <select
                 id="milestoneInspectionStatus"
@@ -254,7 +254,7 @@ function ManualEntryForm({ onSubmit }) {
 
             <div className="form-group">
               <label htmlFor="sirsStatus">
-                SIRS <span className="form-label-sub">(§§718.103(26)/718.112(2)(g)) — §9(c)</span>
+                SIRS <span className="form-label-sub">(§§718.103(26)/718.112(2)(g)), §9(c)</span>
               </label>
               <select
                 id="sirsStatus"
@@ -270,7 +270,7 @@ function ManualEntryForm({ onSubmit }) {
 
             <div className="form-group">
               <label htmlFor="turnoverInspectionStatus">
-                Turnover Inspection <span className="form-label-sub">(§718.301(4)(p)(q)) — §9(b)</span>
+                Turnover Inspection <span className="form-label-sub">(§718.301(4)(p)(q)), §9(b)</span>
               </label>
               <select
                 id="turnoverInspectionStatus"
@@ -299,7 +299,7 @@ function ManualEntryForm({ onSubmit }) {
           />
           <div className="extended-cure-text">
             <span>Buyer Elects Extended Cure Period <span className="form-label-sub">(STANDARD A(ii))</span></span>
-            <small>120 additional days after the standard 30-day cure. Buyer invokes unilaterally — no seller consent or addendum required unless this provision is stricken from the contract.</small>
+            <small>120 additional days after the standard 30-day cure. Buyer invokes unilaterally; no seller consent or addendum required unless this provision is stricken from the contract.</small>
           </div>
         </label>
       </div>

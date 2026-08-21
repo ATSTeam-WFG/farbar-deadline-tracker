@@ -182,7 +182,7 @@ function App() {
   };
 
   const pageTitles = {
-    calculator: 'Deadline Tracker',
+    calculator: 'FAR/BAR Compliance Center',
     reports: 'My Reports',
     notifications: 'Notifications',
     settings: 'Settings',
@@ -221,8 +221,12 @@ function App() {
 
           <div className="topbar-title">
             <h1>{pageTitles[activeView]}</h1>
-            {activeView === 'calculator' && result && contractData?.propertyAddress && (
-              <span className="topbar-subtitle">{contractData.propertyAddress}</span>
+            {activeView === 'calculator' && (
+              <span className="topbar-subtitle">
+                {(result && contractData?.propertyAddress)
+                  ? contractData.propertyAddress
+                  : 'Contract Deadline Management'}
+              </span>
             )}
           </div>
 

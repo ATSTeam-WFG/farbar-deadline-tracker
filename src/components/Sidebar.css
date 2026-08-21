@@ -29,8 +29,8 @@
 }
 
 .sidebar-logo-wrap {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   background: white;
   border-radius: 8px;
   display: flex;
@@ -55,7 +55,7 @@
 
 .sidebar-brand-name {
   font-family: 'Montserrat', sans-serif;
-  font-size: 0.9375rem;
+  font-size: 1rem;
   font-weight: 700;
   color: var(--gold-500);
   letter-spacing: 0.03em;

@@ -5,6 +5,17 @@ import './CalendarView.css';
 
 const DOW_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
+const CATEGORY_ABBREV = {
+  'Deposit': 'DEP',
+  'Financing': 'FIN',
+  'Inspection': 'INS',
+  'Contingency': 'CON',
+  'Title': 'TTL',
+  'Seller Obligations': 'SEL',
+  'Condo': 'HOA',
+  'Closing': 'CLO',
+};
+
 const STATUS_RANK = { overdue: 0, 'due-today': 1, urgent: 2, upcoming: 3, future: 4 };
 
 function buildCalendarGrid(year, month) {
@@ -167,15 +178,19 @@ function CalendarView({ deadlines, hiddenDeadlines = new Set() }) {
                 >
                   <div className="calendar-day-number">{day.getDate()}</div>
                   {hasDeadlines && (
-                    <div className="calendar-day-dots">
-                      {dayDeadlines.length <= 2 ? (
-                        dayDeadlines.map((dl) => {
-                          const s = getDeadlineStatus(daysRemaining(dl.dueDate));
-                          return <span key={dl.id} className={`cal-dot cal-dot--${s}`} />;
-                        })
-                      ) : (
-                        <span className={`cal-dot-badge cal-dot-badge--${dominantStatus}`}>
-                          {dayDeadlines.length}
+                    <div className="calendar-day-chips">
+                      {dayDeadlines.slice(0, 2).map((dl) => {
+                        const s = getDeadlineStatus(daysRemaining(dl.dueDate));
+                        const abbrev = CATEGORY_ABBREV[dl.category] || dl.category.slice(0, 3).toUpperCase();
+                        return (
+                          <span key={dl.id} className={`cal-chip cal-chip--${s}`}>
+                            {abbrev}
+                          </span>
+                        );
+                      })}
+                      {dayDeadlines.length > 2 && (
+                        <span className={`cal-chip-more cal-chip-more--${dominantStatus}`}>
+                          +{dayDeadlines.length - 2}
                         </span>
                       )}
                     </div>
