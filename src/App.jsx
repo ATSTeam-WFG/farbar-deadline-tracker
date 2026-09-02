@@ -15,24 +15,9 @@ import { supabase } from './lib/supabase';
 import { calculateAllDeadlines } from './utils/deadlineRules';
 import { getUserReports } from './services/reportService';
 import { getDeadlineStatuses } from './services/deadlineStatusService';
+import FeedbackButton from './components/FeedbackButton';
+import LandingPage from './components/LandingPage';
 import './App.css';
-
-function FeedbackButton() {
-  return (
-    <a
-      href="https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=o6hYNyq_bUuqce_63KT3Ta7fqjmMiadGmU6Gof7Q8-pUNk1DOTQ1RjM0R0lMVzY0SldXOUtPVjRESC4u"
-      target="_blank"
-      rel="noopener noreferrer"
-      className="feedback-btn"
-      aria-label="Share feedback"
-    >
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
-      </svg>
-      <span>Feedback</span>
-    </a>
-  );
-}
 
 function AppContent() {
   const { currentUser } = useAuth();
@@ -41,6 +26,13 @@ function AppContent() {
   );
   const [authError, setAuthError] = useState('');
   const [showSignInAfterConfirm, setShowSignInAfterConfirm] = useState(false);
+  const [showLanding, setShowLanding] = useState(!currentUser);
+
+  // A fresh sign-in while the landing page is showing means the visitor wants in
+  useEffect(() => {
+    if (currentUser && showLanding) setShowLanding(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser]);
 
   // Handle Supabase auth callbacks (email confirmation, PKCE code exchange, error fragments)
   useEffect(() => {
@@ -285,6 +277,20 @@ function AppContent() {
     notifications: 'Notifications',
     settings: 'Settings',
   };
+
+  if (showLanding) {
+    return (
+      <>
+        <LandingPage
+          onEnter={() => setShowLanding(false)}
+          onSignIn={() => setShowSignInAfterConfirm(true)}
+        />
+        {showSignInAfterConfirm && (
+          <AuthModal onClose={() => setShowSignInAfterConfirm(false)} />
+        )}
+      </>
+    );
+  }
 
   return (
     <div className="app-layout">
