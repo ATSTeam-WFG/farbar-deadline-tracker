@@ -26,6 +26,7 @@ function AppContent() {
   );
   const [authError, setAuthError] = useState('');
   const [showSignInAfterConfirm, setShowSignInAfterConfirm] = useState(false);
+  const [pendingFormData, setPendingFormData] = useState(null);
   const [showLanding, setShowLanding] = useState(!currentUser);
 
   // A fresh sign-in while the landing page is showing means the visitor wants in
@@ -88,12 +89,39 @@ function AppContent() {
     }
   }, [currentUser]);
 
-  const handleCalculate = (formData) => {
+  // Resume a calculation that was waiting on sign-in, once the user signs in
+  useEffect(() => {
+    if (!currentUser || !pendingFormData) return;
+    setShowSignInAfterConfirm(false);
+    if (!localStorage.getItem('wfg_disclaimer_v1')) {
+      setShowDisclaimer(true);
+    } else {
+      runCalculation(pendingFormData);
+      setPendingFormData(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser]);
+
+  const runCalculation = (formData) => {
     const calculatedResult = calculateAllDeadlines(formData);
     setResult(calculatedResult);
     setContractData(formData);
     setSavedReportId(null);
     setCalendarStatuses({});
+  };
+
+  const handleCalculate = (formData) => {
+    if (!currentUser) {
+      setPendingFormData(formData);
+      setShowSignInAfterConfirm(true);
+      return;
+    }
+    if (!localStorage.getItem('wfg_disclaimer_v1')) {
+      setPendingFormData(formData);
+      setShowDisclaimer(true);
+      return;
+    }
+    runCalculation(formData);
   };
 
   const handleReset = () => {
@@ -298,6 +326,10 @@ function AppContent() {
         <DisclaimerModal onAgree={() => {
           localStorage.setItem('wfg_disclaimer_v1', 'accepted');
           setShowDisclaimer(false);
+          if (pendingFormData) {
+            runCalculation(pendingFormData);
+            setPendingFormData(null);
+          }
         }} />
       )}
 
