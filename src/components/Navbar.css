@@ -1,0 +1,251 @@
+/**
+ * Shared navbar — dark navy strip used on both the landing page and the main app.
+ * Landing:  left=brand, centre=nav links, right=sign-in
+ * App:      left=hamburger+brand, right=actions
+ */
+
+.navbar {
+  background: var(--navy-900);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  flex-shrink: 0;
+  z-index: 40;
+}
+
+.navbar-inner {
+  max-width: 100%;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  height: 64px;
+  gap: 16px;
+}
+
+/* ---- Left cluster (hamburger + brand) ---- */
+
+.navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.navbar-hamburger {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.75);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s;
+  flex-shrink: 0;
+}
+
+.navbar-hamburger:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.navbar-logo {
+  height: 30px;
+  width: auto;
+  display: block;
+  border-radius: 6px;
+}
+
+.navbar-brand-word {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.navbar-brand-word strong {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: #ffffff;
+  letter-spacing: 0.01em;
+}
+
+.navbar-brand-word span {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold-600);
+}
+
+/* ---- Nav links (landing, inside right cluster) ---- */
+
+.navbar-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.navbar-nav a {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.72);
+  text-decoration: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
+}
+
+/* Small downward chevron — signals "scrolls to section below" */
+.navbar-nav a::after {
+  content: '';
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg) translateY(-1px);
+  opacity: 0.6;
+  transition: opacity 0.15s, transform 0.15s;
+}
+
+.navbar-nav a:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.navbar-nav a:hover::after {
+  opacity: 1;
+  transform: rotate(45deg) translateY(1px);
+}
+
+/* ---- Right cluster ---- */
+
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  padding-right: 8px;
+  flex-shrink: 0;
+}
+
+/* Push Sign In away from the nav links with a spacer */
+.navbar-nav + .navbar-signin-btn {
+  margin-left: 20px;
+}
+
+/* Landing sign-in button — matches .landing-btn-gold */
+.navbar-signin-btn {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 10px 22px;
+  border-radius: 8px;
+  border: 1.5px solid transparent;
+  background: linear-gradient(180deg, var(--gold-500), var(--gold-600));
+  color: var(--navy-900);
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.35) inset, 0 8px 20px rgba(166,135,81,0.28);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.navbar-signin-btn:hover {
+  transform: translateY(-1px);
+}
+
+/* App-mode action buttons */
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Match AuthButton's Sign In to the landing page gold button */
+.navbar-app .auth-signin-btn {
+  background: linear-gradient(180deg, var(--gold-500), var(--gold-600));
+  color: var(--navy-900);
+  border: 1.5px solid transparent;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.35) inset, 0 8px 20px rgba(166,135,81,0.28);
+  font-size: 0.9rem;
+  padding: 10px 22px;
+  border-radius: 8px;
+}
+
+.navbar-app .auth-signin-btn:hover:not(:disabled) {
+  background: linear-gradient(180deg, var(--gold-400), var(--gold-500));
+  border-color: transparent;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.35) inset, 0 8px 20px rgba(166,135,81,0.35);
+  transform: translateY(-1px);
+}
+
+/* Override app's light topbar-action-btn when inside dark navbar */
+.navbar-app .topbar-action-btn {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.8);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.navbar-app .topbar-action-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: var(--gold-400);
+  color: var(--gold-400);
+}
+
+/* Override AuthButton's light bg when inside dark navbar */
+.navbar-app .auth-user-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(196, 165, 116, 0.4);
+  box-shadow: none;
+}
+
+.navbar-app .auth-user-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: var(--gold-400);
+  box-shadow: none;
+  transform: none;
+}
+
+.navbar-app .auth-user-name {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.navbar-app .auth-user-btn svg {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.navbar-app .auth-user-btn:hover svg {
+  color: var(--gold-400);
+}
+
+/* ---- Responsive ---- */
+
+@media (max-width: 860px) {
+  /* Hide anchor links on narrow screens, keep Sign In visible */
+  .navbar-nav {
+    display: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .navbar-inner {
+    padding: 0 12px;
+  }
+
+  .navbar-brand-word {
+    display: none;
+  }
+}

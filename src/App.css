@@ -166,16 +166,25 @@ h1, h2, h3, h4 {
 }
 
 /* ============================================================
-   APP LAYOUT — sidebar + main panel
+   APP LAYOUT — full-width navbar on top, then sidebar + content
    ============================================================ */
 .app-layout {
   display: flex;
-  min-height: 100vh;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
   background: var(--bg-primary);
 }
 
+.app-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
 /* ============================================================
-   MAIN PANEL
+   MAIN PANEL (legacy — kept for print query reference)
    ============================================================ */
 .main-panel {
   flex: 1;
@@ -534,9 +543,9 @@ h1, h2, h3, h4 {
   align-items: center;
   padding: 0.75rem 1rem;
   margin-top: auto;
-  background: var(--bg-tertiary);
+  background: white;
   border-radius: var(--radius-lg);
-  border: 1.5px dashed rgba(196, 165, 116, 0.3);
+  border: 1.5px solid var(--gray-200);
 }
 
 .checkbox-label {
@@ -570,8 +579,8 @@ h1, h2, h3, h4 {
 .condo-rider-panel {
   margin: 0.875rem 0;
   padding: 1rem 1.25rem;
-  background: rgba(196, 165, 116, 0.04);
-  border: 1.5px solid rgba(196, 165, 116, 0.3);
+  background: white;
+  border: 1.5px solid var(--gray-200);
   border-radius: var(--radius-card);
 }
 
@@ -579,10 +588,10 @@ h1, h2, h3, h4 {
   font-family: var(--font-heading);
   font-size: 0.85rem;
   font-weight: 700;
-  color: var(--gold-700, #a8894f);
+  color: var(--navy-700);
   margin: 0 0 0.875rem 0;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid rgba(196, 165, 116, 0.2);
+  border-bottom: 1px solid var(--gray-200);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -600,9 +609,8 @@ h1, h2, h3, h4 {
 .extended-cure-card {
   margin-bottom: 0.875rem;
   padding: 0.875rem 1.25rem;
-  background: rgba(196, 165, 116, 0.05);
-  border: 1.5px solid rgba(196, 165, 116, 0.3);
-  border-left: 3px solid var(--gold-500);
+  background: white;
+  border: 1px solid var(--gray-200);
   border-radius: var(--radius-lg);
 }
 
@@ -1916,6 +1924,7 @@ h1, h2, h3, h4 {
 @media print {
   .sidebar,
   .main-topbar,
+  .navbar,
   .results-actions,
   .input-method-toggle {
     display: none !important;
@@ -2188,12 +2197,12 @@ h1, h2, h3, h4 {
 ::-webkit-scrollbar-thumb:hover { background: var(--accent-gold-dark); }
 
 /* ============================================================
-   FEEDBACK BUTTON — fixed bottom-left
+   FEEDBACK BUTTON — fixed bottom-right
    ============================================================ */
 .feedback-btn {
   position: fixed;
   bottom: 1.5rem;
-  left: calc(var(--sidebar-width) + 1.5rem);
+  right: 1.5rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -2217,7 +2226,7 @@ h1, h2, h3, h4 {
 
 @media (max-width: 1024px) {
   .feedback-btn {
-    left: 1rem;
+    right: 1rem;
     bottom: 1rem;
   }
 }

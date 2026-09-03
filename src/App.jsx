@@ -17,6 +17,8 @@ import { getUserReports } from './services/reportService';
 import { getDeadlineStatuses } from './services/deadlineStatusService';
 import FeedbackButton from './components/FeedbackButton';
 import LandingPage from './components/LandingPage';
+import Navbar from './components/Navbar';
+import { recordDisclaimerAcceptance } from './services/disclaimerService';
 import './App.css';
 
 function AppContent() {
@@ -70,7 +72,13 @@ function AppContent() {
   const [contractData, setContractData] = useState(null);
   const [hiddenDeadlines, setHiddenDeadlines] = useState(new Set());
   const [activeView, setActiveView] = useState('calculator');
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);       // mobile drawer
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false); // desktop collapse
+
+  const handleHamburger = () => {
+    setSidebarOpen(prev => !prev);
+    setSidebarCollapsed(prev => !prev);
+  };
 
   // Report persistence state
   const [savedReportId, setSavedReportId] = useState(null);
@@ -271,13 +279,6 @@ function AppContent() {
     settings: renderSettingsPanel,
   };
 
-  const pageTitles = {
-    calculator: 'FAR/BAR Compliance Center',
-    reports: 'My Reports',
-    notifications: 'Notifications',
-    settings: 'Settings',
-  };
-
   if (showLanding) {
     return (
       <>
@@ -298,6 +299,7 @@ function AppContent() {
         <DisclaimerModal onAgree={() => {
           localStorage.setItem('wfg_disclaimer_v1', 'accepted');
           setShowDisclaimer(false);
+          recordDisclaimerAcceptance(currentUser?.id ?? null);
         }} />
       )}
 
@@ -316,40 +318,11 @@ function AppContent() {
         <AuthModal onClose={() => setShowSignInAfterConfirm(false)} />
       )}
 
-      <Sidebar
-        activeView={activeView}
-        onViewChange={setActiveView}
-        currentUser={currentUser}
-        isOpen={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-      />
-
-      <div className="main-panel">
-        <header className="main-topbar">
-          <button
-            className="topbar-hamburger"
-            onClick={() => setSidebarOpen(true)}
-            aria-label="Open navigation menu"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="3" y1="6" x2="21" y2="6" />
-              <line x1="3" y1="12" x2="21" y2="12" />
-              <line x1="3" y1="18" x2="21" y2="18" />
-            </svg>
-          </button>
-
-          <div className="topbar-title">
-            <h1>{pageTitles[activeView]}</h1>
-            {activeView === 'calculator' && (
-              <span className="topbar-subtitle">
-                {(result && contractData?.propertyAddress)
-                  ? contractData.propertyAddress
-                  : 'Contract Deadline Management'}
-              </span>
-            )}
-          </div>
-
-          <div className="topbar-actions">
+      <Navbar
+        mode="app"
+        onHamburger={handleHamburger}
+        actions={
+          <>
             {activeView === 'calculator' && result && (
               <button className="topbar-action-btn" onClick={handleReset} title="New Contract">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -360,8 +333,19 @@ function AppContent() {
               </button>
             )}
             <AuthButton onNavigate={setActiveView} />
-          </div>
-        </header>
+          </>
+        }
+      />
+
+      <div className="app-body">
+        <Sidebar
+          activeView={activeView}
+          onViewChange={setActiveView}
+          currentUser={currentUser}
+          isOpen={sidebarOpen}
+          isCollapsed={sidebarCollapsed}
+          onClose={() => setSidebarOpen(false)}
+        />
 
         <main className="main-body">
           {(panelMap[activeView] || panelMap.calculator)()}

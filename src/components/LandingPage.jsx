@@ -1,25 +1,11 @@
+import Navbar from './Navbar';
 import FeedbackButton from './FeedbackButton';
 import './LandingPage.css';
 
 function LandingPage({ onEnter, onSignIn }) {
   return (
     <div className="landing">
-      <header className="landing-header">
-        <div className="landing-container landing-header-inner">
-          <div className="landing-brand">
-            <img src="/logo.png" alt="WFG National Title Insurance Company" className="landing-brand-logo" />
-            <div className="landing-brand-word">
-              <strong>FAR/BAR</strong>
-              <span>Compliance Center</span>
-            </div>
-          </div>
-          <nav className="landing-nav">
-            <a href="#how">How it works</a>
-            <a href="#tracks">What it tracks</a>
-            <button className="landing-btn landing-btn-navy" onClick={onSignIn}>Sign in</button>
-          </nav>
-        </div>
-      </header>
+      <Navbar mode="landing" onSignIn={onSignIn} />
 
       <section className="landing-hero">
         <div className="landing-container landing-hero-grid">
@@ -36,10 +22,10 @@ function LandingPage({ onEnter, onSignIn }) {
               <button className="landing-btn landing-btn-gold" onClick={onEnter}>
                 Calculate a Contract &rarr;
               </button>
-              <a className="landing-btn landing-btn-outline" href="#how">See how it works</a>
+              <a className="landing-btn landing-btn-outline-light" href="#how">See how it works</a>
             </div>
             <p className="landing-hero-note">
-              No file needed to start &mdash; manual entry takes under a minute. PDF intake is in development.
+              No file needed to start. Manual entry takes under a minute. PDF intake is in development.
             </p>
           </div>
 
@@ -134,7 +120,7 @@ function LandingPage({ onEnter, onSignIn }) {
               <div className="landing-article-kicker">Article I</div>
               <h3>Calculation</h3>
               <ul>
-                <li>Full-contract coverage &mdash; deposits, financing, inspections, title, closing</li>
+                <li>Full-contract coverage: deposits, financing, inspections, title, closing</li>
                 <li>Business-day aware, per Standard F</li>
                 <li>Condo &amp; HOA rider logic</li>
                 <li>Every result cited to a contract paragraph</li>
@@ -146,8 +132,8 @@ function LandingPage({ onEnter, onSignIn }) {
               <h3>Tracking</h3>
               <ul>
                 <li>List &amp; calendar views</li>
-                <li>Status per deadline &mdash; pending, completed, waived, extended</li>
-                <li>Risk at a glance &mdash; overdue and due-soon counts</li>
+                <li>Status per deadline: pending, completed, waived, extended</li>
+                <li>Risk at a glance: overdue and due-soon counts</li>
                 <li>In-app due-soon alerts</li>
               </ul>
             </article>
@@ -159,24 +145,23 @@ function LandingPage({ onEnter, onSignIn }) {
                 <li>Branded PDF export</li>
                 <li>Saved reports, reload anytime</li>
                 <li>Print-ready view</li>
-                <li>Configurable report &mdash; hide deadlines you don&rsquo;t need</li>
+                <li>Configurable report: hide deadlines you don&rsquo;t need</li>
               </ul>
             </article>
           </div>
         </div>
       </section>
 
-      <section className="landing-section" id="disclaimer">
+      <section className="landing-section landing-section-disclaimer" id="disclaimer">
         <div className="landing-container">
-          <div className="landing-clause">
-            <span className="landing-quote-mark">&ldquo;</span>
+          <div className="landing-disclaimer-box">
+            <span className="landing-disclaimer-label">Legal Disclaimer</span>
             <p>
-              All deadline calculations displayed by this tool are generated programmatically from
-              FAR/BAR contract parameters and are provided for informational and educational purposes
-              only. No output constitutes legal advice or a final determination of any contractual
-              deadline. Deadlines must be independently verified against the executed contract and
-              applicable Florida law.
-              <span className="landing-clause-src">&mdash; disclaimer shown before every calculation, FAR/BAR Deadline Tracker</span>
+              All deadline calculations displayed by this tool are generated programmatically
+              from FAR/BAR contract parameters and are provided for informational and educational
+              purposes only. No output constitutes legal advice or a final determination of any
+              contractual deadline. Deadlines must be independently verified against the executed
+              contract and applicable Florida law.
             </p>
           </div>
         </div>
