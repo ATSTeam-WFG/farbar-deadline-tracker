@@ -5,7 +5,7 @@ import './NotificationSettings.css';
 
 function NotificationSettings({ onClose }) {
   const { currentUser } = useAuth();
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [preferences, setPreferences] = useState({
     emailNotifications: false,
@@ -66,7 +66,7 @@ function NotificationSettings({ onClose }) {
         setTimeout(() => message.remove(), 300);
       }, 3000);
 
-      setTimeout(onClose, 1000);
+      if (onClose) setTimeout(onClose, 1000);
     } catch (error) {
       console.error('Error saving preferences:', error);
       alert('Failed to save notification settings. Please try again.');
@@ -92,35 +92,22 @@ function NotificationSettings({ onClose }) {
     }));
   };
 
-  if (loading) {
-    return (
-      <div className="settings-overlay" onClick={onClose}>
-        <div className="settings-modal" onClick={(e) => e.stopPropagation()}>
-          <div className="settings-loading">
-            <div className="loading-spinner"></div>
-            <p>Loading notification settings...</p>
-          </div>
+  const settingsContent = (
+    <>
+      {loading ? (
+        <div className="settings-loading">
+          <div className="loading-spinner"></div>
+          <p>Loading notification settings...</p>
         </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="settings-overlay" onClick={onClose}>
-      <div className="settings-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="settings-header">
-          <div>
-            <h2>Notification Settings</h2>
-            <p className="settings-subtitle">Manage your email notification preferences</p>
-          </div>
-          <button className="settings-close-btn" onClick={onClose}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
+      ) : !currentUser ? (
+        <div className="settings-no-user">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+          <p>Sign in to manage notification preferences.</p>
         </div>
-
+      ) : (
         <div className="settings-content">
           {/* Email Notifications Toggle */}
           <div className="settings-section">
@@ -289,18 +276,43 @@ function NotificationSettings({ onClose }) {
             </div>
           )}
         </div>
+      )}
+    </>
+  );
 
-        <div className="settings-footer">
-          <button className="btn-secondary" onClick={onClose} disabled={saving}>
-            Cancel
-          </button>
-          <button className="btn-primary" onClick={handleSave} disabled={saving}>
-            {saving ? 'Saving...' : 'Save Settings'}
-          </button>
+  if (onClose) {
+    return (
+      <div className="settings-overlay" onClick={onClose}>
+        <div className="settings-modal" onClick={(e) => e.stopPropagation()}>
+          <div className="settings-header">
+            <div>
+              <h2>Notification Settings</h2>
+              <p className="settings-subtitle">Manage your email notification preferences</p>
+            </div>
+            <button className="settings-close-btn" onClick={onClose}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          </div>
+          {settingsContent}
+          {currentUser && (
+            <div className="settings-footer">
+              <button className="btn-secondary" onClick={onClose} disabled={saving}>
+                Cancel
+              </button>
+              <button className="btn-primary" onClick={handleSave} disabled={saving}>
+                {saving ? 'Saving...' : 'Save Settings'}
+              </button>
+            </div>
+          )}
         </div>
       </div>
-    </div>
-  );
+    );
+  }
+
+  return settingsContent;
 }
 
 export default NotificationSettings;
