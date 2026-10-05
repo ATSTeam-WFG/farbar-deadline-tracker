@@ -6,6 +6,7 @@ import { saveReport } from '../services/reportService';
 import { getDeadlineStatuses, upsertDeadlineStatus } from '../services/deadlineStatusService';
 import { exportToPDF } from '../services/pdfExport';
 import CalendarView from './CalendarView';
+import PdfBrandingModal from './PdfBrandingModal';
 
 function formatRef(ref) {
   if (!ref) return '';
@@ -254,6 +255,8 @@ function DeadlineResults({ result, contractData, hiddenDeadlines = new Set(), on
   const [saving, setSaving] = useState(false);
   const [viewMode, setViewMode] = useState('list');
   const [showSaveModal, setShowSaveModal] = useState(false);
+  const [showBrandingModal, setShowBrandingModal] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [reportId, setReportId] = useState(savedReportId || null);
   const [statuses, setStatuses] = useState({});
 
@@ -337,11 +340,19 @@ function DeadlineResults({ result, contractData, hiddenDeadlines = new Set(), on
     setShowSaveModal(true);
   };
 
-  const handleExportPDF = () => {
+  // Export now opens the branding dialog; the PDF is only generated from its Export button.
+  const handleExportPDF = () => setShowBrandingModal(true);
+
+  const performExportPDF = async (branding) => {
+    setExporting(true);
     try {
-      exportToPDF(result, contractData);
+      await exportToPDF(result, contractData, branding);
+      setShowBrandingModal(false);
     } catch (error) {
+      console.error('PDF export failed:', error);
       alert('Failed to export PDF. Please try again.');
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -352,6 +363,14 @@ function DeadlineResults({ result, contractData, hiddenDeadlines = new Set(), on
           defaultName={contractData.propertyAddress || ''}
           onSave={performSave}
           onCancel={() => setShowSaveModal(false)}
+        />
+      )}
+
+      {showBrandingModal && (
+        <PdfBrandingModal
+          exporting={exporting}
+          onCancel={() => setShowBrandingModal(false)}
+          onExport={performExportPDF}
         />
       )}
 
