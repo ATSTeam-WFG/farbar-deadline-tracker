@@ -1,0 +1,188 @@
+/**
+ * "Choose PDF Branding" dialog.
+ * Builds on the shared .save-modal-overlay / .save-modal styles in src/App.css.
+ */
+
+.branding-modal {
+  position: relative;
+  max-width: 480px;
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+}
+
+.branding-modal-close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.branding-modal-close:hover:not(:disabled) {
+  background: var(--gray-100);
+  color: var(--text-primary);
+}
+
+.branding-modal-close:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.branding-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.branding-option {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  background: white;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+/* The WFG option is a <label> that is itself the row; the custom option wraps its own label. */
+label.branding-option {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.branding-option.is-selected {
+  border-color: var(--gold-500);
+  background: rgba(196, 165, 116, 0.06);
+}
+
+.branding-option-radio {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+}
+
+.branding-option input[type="radio"] {
+  width: 1.125rem;
+  height: 1.125rem;
+  accent-color: var(--gold-600);
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.branding-option-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.branding-option-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.branding-option-desc {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.branding-upload {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-left: 1.875rem; /* aligns under the option text, past the radio */
+  min-width: 0;
+}
+
+.branding-upload .btn-secondary {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.branding-file-input {
+  /* Visually hidden; the Upload button opens it. */
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.branding-file-name {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.branding-error,
+.branding-hint {
+  margin: 0 !important;
+  padding-left: 1.875rem;
+  font-size: 0.8rem !important;
+  line-height: 1.4;
+}
+
+.branding-error {
+  color: var(--danger-color) !important;
+}
+
+.branding-hint {
+  color: var(--text-secondary) !important;
+}
+
+.branding-preview {
+  margin-left: 1.875rem;
+  padding: 0.75rem;
+  background: white;
+  border: 1px dashed var(--gray-300);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 72px;
+}
+
+.branding-preview img {
+  display: block;
+  max-width: 100%;
+  max-height: 80px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+@media (max-width: 480px) {
+  .branding-modal {
+    padding: 1.5rem 1.25rem;
+  }
+
+  .branding-upload,
+  .branding-error,
+  .branding-hint {
+    padding-left: 0;
+  }
+
+  .branding-preview {
+    margin-left: 0;
+  }
+}

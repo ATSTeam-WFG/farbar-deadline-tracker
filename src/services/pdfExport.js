@@ -9,8 +9,12 @@ import { format } from 'date-fns';
 
 /**
  * Export calculation results to PDF
+ *
+ * options.logo (optional): { dataUrl, width, height } for a user-supplied PNG logo
+ * (already validated/normalized by utils/logoUtils). When omitted, the default
+ * WFG logo is used exactly as before.
  */
-export async function exportToPDF(result, contractData) {
+export async function exportToPDF(result, contractData, options = {}) {
   const doc = new jsPDF();
 
   // Page dimensions
@@ -30,12 +34,25 @@ export async function exportToPDF(result, contractData) {
 
   // Add logo
   try {
-    const logoImg = await loadImage('/logo.png');
-    const logoWidth = 45;
-    const logoHeight = 20;
-    const logoX = (pageWidth - logoWidth) / 2;
-    doc.addImage(logoImg, 'PNG', logoX, 10, logoWidth, logoHeight);
-    yPosition = 35;
+    // Custom branding: draw the uploaded logo; if that fails, fall back to the default logo.
+    let customLogoDrawn = false;
+    if (options.logo) {
+      try {
+        yPosition = drawCustomLogo(doc, options.logo, pageWidth, darkColor);
+        customLogoDrawn = true;
+      } catch (customError) {
+        console.error('Error drawing custom logo, using default logo:', customError);
+      }
+    }
+
+    if (!customLogoDrawn) {
+      const logoImg = await loadImage('/logo.png');
+      const logoWidth = 45;
+      const logoHeight = 20;
+      const logoX = (pageWidth - logoWidth) / 2;
+      doc.addImage(logoImg, 'PNG', logoX, 10, logoWidth, logoHeight);
+      yPosition = 35;
+    }
   } catch (error) {
     console.error('Error loading logo:', error);
     yPosition = 20;
@@ -194,6 +211,38 @@ function getStatusBadge(dueDate) {
   if (diffDays <= 3) return 'URGENT';
   if (diffDays <= 7) return 'SOON';
   return 'FUTURE';
+}
+
+/**
+ * Draw a user-supplied logo in the header, on a white plate, preserving its aspect ratio.
+ * Occupies the same vertical band as the default logo (y 10-30mm) and returns the
+ * title y-position the default logo path uses, so the rest of the header is unchanged.
+ */
+function drawCustomLogo(doc, logo, pageWidth, headerFill) {
+  const PAD = 1.5;       // white padding around the logo (mm)
+  const MAX_IMG_W = 57;  // mm
+  const MAX_IMG_H = 17;  // mm  (17 + 2 * PAD = 20mm plate, matching the default logo band)
+
+  const ratio = logo.width / logo.height;
+  let imgH = MAX_IMG_H;
+  let imgW = imgH * ratio;
+  if (imgW > MAX_IMG_W) {
+    imgW = MAX_IMG_W;
+    imgH = imgW / ratio;
+  }
+
+  const plateW = imgW + PAD * 2;
+  const plateH = imgH + PAD * 2;
+  const plateX = (pageWidth - plateW) / 2;
+  const plateY = 20 - plateH / 2; // centered on the band the default logo occupies
+
+  doc.setFillColor(255, 255, 255);
+  doc.roundedRect(plateX, plateY, plateW, plateH, 1.5, 1.5, 'F');
+  doc.addImage(logo.dataUrl, 'PNG', plateX + PAD, plateY + PAD, imgW, imgH);
+
+  // Restore the header fill color so later drawing state matches the default-logo path.
+  doc.setFillColor(...headerFill);
+  return 35;
 }
 
 /**
