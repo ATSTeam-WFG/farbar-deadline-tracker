@@ -343,14 +343,17 @@ function DeadlineResults({ result, contractData, hiddenDeadlines = new Set(), on
   // Export now opens the branding dialog; the PDF is only generated from its Export button.
   const handleExportPDF = () => setShowBrandingModal(true);
 
+  // Resolves true once the PDF has been generated. The dialog decides when to close, because
+  // it may still need to save the logo (opt-in) after a successful export.
   const performExportPDF = async (branding) => {
     setExporting(true);
     try {
       await exportToPDF(result, contractData, branding);
-      setShowBrandingModal(false);
+      return true;
     } catch (error) {
       console.error('PDF export failed:', error);
       alert('Failed to export PDF. Please try again.');
+      return false;
     } finally {
       setExporting(false);
     }
@@ -368,8 +371,10 @@ function DeadlineResults({ result, contractData, hiddenDeadlines = new Set(), on
 
       {showBrandingModal && (
         <PdfBrandingModal
+          key={currentUser?.id ?? 'guest'}
+          userId={currentUser?.id ?? null}
           exporting={exporting}
-          onCancel={() => setShowBrandingModal(false)}
+          onClose={() => setShowBrandingModal(false)}
           onExport={performExportPDF}
         />
       )}

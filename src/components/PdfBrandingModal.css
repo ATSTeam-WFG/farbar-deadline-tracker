@@ -150,8 +150,17 @@ label.branding-option {
   color: var(--text-secondary) !important;
 }
 
+.branding-preview-block {
+  margin: 0 0 0 1.875rem;
+}
+
+.branding-preview-caption {
+  margin-top: 0.375rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
 .branding-preview {
-  margin-left: 1.875rem;
   padding: 0.75rem;
   background: white;
   border: 1px dashed var(--gray-300);
@@ -182,7 +191,96 @@ label.branding-option {
     padding-left: 0;
   }
 
-  .branding-preview {
+  .branding-preview-block {
+    margin-left: 0;
+  }
+}
+
+/* ---------- saved-logo controls ---------- */
+
+.branding-save-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-left: 1.875rem;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.branding-save-option input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  margin-top: 0.15rem;
+  accent-color: var(--gold-600);
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.branding-link {
+  align-self: flex-start;
+  margin-left: 1.875rem;
+  padding: 0;
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: 0.8rem;
+  color: var(--navy-700);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.branding-error .branding-link {
+  margin-left: 0;
+  color: inherit;
+}
+
+.branding-link:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.branding-link--danger {
+  color: var(--danger-color);
+}
+
+.branding-confirm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 0.75rem;
+  margin-left: 1.875rem;
+  padding: 0.625rem 0.75rem;
+  font-size: 0.8rem;
+  color: var(--text-primary);
+  background: #fdf3f2;
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  border-radius: var(--radius-sm);
+}
+
+.branding-confirm-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.branding-save-failure {
+  margin: 0 0 1rem;
+  padding: 0.75rem 0.875rem;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: var(--text-primary);
+  background: #fff8e8;
+  border: 1px solid rgba(196, 165, 116, 0.6);
+  border-left: 3px solid var(--gold-600);
+  border-radius: var(--radius-sm);
+}
+
+/* Mobile overrides for the controls above (kept after them so they win the cascade) */
+@media (max-width: 480px) {
+  .branding-save-option,
+  .branding-link,
+  .branding-confirm {
     margin-left: 0;
   }
 }
